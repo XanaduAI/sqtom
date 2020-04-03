@@ -1,6 +1,6 @@
 import numpy as np
 from lmfit import Minimizer, Parameters
-from .photon_tom import degenerate_pmf
+from ._photon_tom import degenerate_pmf
 
 
 def marginal_calcs_1d(pd_data, as_dict=True):
