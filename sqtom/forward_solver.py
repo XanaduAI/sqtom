@@ -64,7 +64,7 @@ def loss_mat(eta, cutoff):
             lm[i, j] = lm[i, j - 1] * (eta / mu) * (i - j + 1) / (j)
     return lm
 
-
+#pylint: disable=too-many-arguments
 def twinbeam_pmf(
     cutoff,
     eta_s=1.0,

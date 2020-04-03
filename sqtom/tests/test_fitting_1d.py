@@ -6,7 +6,7 @@ from sqtom.fitting_1d import model_1d, fit_1d
 
 @pytest.mark.parametrize("model", ["NoneFixed", "LossFixed", "NoiseFixed", "NoiseLossFixed"])
 @pytest.mark.parametrize("n_modes", [1,2,3])
-def test_exact_model(model, n_modes):
+def test_exact_model_1d(model, n_modes):
 	"""Test that the fitting is correct when the guess is exactly the correct answer"""
 	sq_n = 0.7 * (0.5 ** np.arange(n_modes))
 	n_dark = 0.1

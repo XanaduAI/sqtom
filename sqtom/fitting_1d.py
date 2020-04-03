@@ -1,3 +1,30 @@
+# Copyright 2019 Xanadu Quantum Technologies Inc.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+Degenerate squeezer inverse-problem solver
+==========================================
+This module solves the *inverse* problem of given a photon number distribution find the best
+of parameters describing different the quantum states in a single beam producing it.
+
+The ideas behind this module borrow heavily on the work of Burenkok et al. in
+
+Full statistical mode reconstruction of a light field via a photon-number-resolved measurement
+I. A. Burenkov, A. K. Sharma, T. Gerrits, G. Harder, T. J. Bartley, C. Silberhorn, E. A. Goldschmidt, and S. V. Polyakov
+Phys. Rev. A 95, 053806 (2017)
+"""
+
+
 import numpy as np
 from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import degenerate_pmf
