@@ -20,7 +20,7 @@ def two_schmidt_mode_guess(jpd_data):
     etas = res["ns"] / Nbar
     etai = res["ni"] / Nbar
     noise = np.abs(res["g2s"] - res["g2i"]) * Nbar
-    return {"etas": etas, "etai": etai, "twin_n1": n1, "twin_n2": n2, "ns": noise, "ni": noise}
+    return {"etas": etas, "etai": etai, "twin_n1": n1, "twin_n2": n2, "ns": noise * etas, "ni": noise * etai}
 
 
 
