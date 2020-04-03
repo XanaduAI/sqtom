@@ -9,8 +9,6 @@ This repository implements the mode tomography ideas presented in
 
 for twin beam light and extends it to degenerate squeezed light.
 
-See Examples.ipynb for examples.
-
 ## Contents
 
 The main physical ideal used by Burenkov et al. is to model the joint photon distribution of the variables associated to the photon numbers in signal and idler beams as resulting from one or several lossy two-mode squeezed distributions hitting the detectors. To model dark counts they also allow for modes prepared in states with Poisson statistics to hit the detectors.

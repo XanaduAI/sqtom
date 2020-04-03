@@ -1,7 +1,28 @@
-from sqtom import twinbeam_pmf, loss_mat, degenerate_pmf, marginal_calcs_2d, two_schmidt_mode_guess, marginal_calcs_1d, gen_hist_2d
+# Copyright 2019 Xanadu Quantum Technologies Inc.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# pylint: disable=too-many-arguments
+# pylint: disable=invalid-name
+# pylint: disable=line-too-long
+
+"""Basic tests for the functions in forward_solver"""
 import pytest
 import numpy as np
 from scipy.stats import geom
+from sqtom.forward_solver import twinbeam_pmf, loss_mat, degenerate_pmf
+from sqtom.fitting_1d import marginal_calcs_1d
+from sqtom.fitting_2d import marginal_calcs_2d, two_schmidt_mode_guess, gen_hist_2d
 
 
 @pytest.mark.parametrize("eta_s", [0.1, 0.5, 1.0])
@@ -38,10 +59,9 @@ def test_gen_hist_2d_twin(sq_n):
 @pytest.mark.parametrize("ns", [0.1, 1.0, 2.0])
 @pytest.mark.parametrize("ni", [0.1, 1.0, 2.0])
 def test_gen_hist_2d_poisson(ns, ni):
+    """Test the histograms are correctly generated for pure noise"""
     nsamples = 1000000
-    samples2d = np.array(
-        [np.random.poisson(ns, nsamples), np.random.poisson(ni, nsamples)]
-    )
+    samples2d = np.array([np.random.poisson(ns, nsamples), np.random.poisson(ni, nsamples)])
     mat = gen_hist_2d(samples2d[0], samples2d[1])
     n, m = mat.shape
     nmax = np.max([n, m])
@@ -70,10 +90,7 @@ def test_loss_is_nonnegative_matrix(eta):
 def test_value_error(eta):
     """Tests the correct error is raised"""
     n = 50
-    with pytest.raises(
-        ValueError,
-        match="The transmission parameter eta should be a number between 0 and 1.",
-    ):
+    with pytest.raises(ValueError, match="The transmission parameter eta should be a number between 0 and 1."):
         loss_mat(eta, n)
 
 
@@ -97,6 +114,7 @@ def test_two_schmidt_mode_guess_exact(eta_s, eta_i, sq_n1, sq_n2):
     assert np.allclose(sq_n2, guess["twin_n2"], atol=1.0e-2)
 
 
+# pylint: disable=too-many-locals
 @pytest.mark.parametrize("eta_s", [0.1, 0.5, 1.0])
 @pytest.mark.parametrize("eta_i", [0.1, 0.5, 1.0])
 @pytest.mark.parametrize("sq_n1", [0.0, 0.1, 1.0, 2.0])
@@ -107,14 +125,7 @@ def test_dark_counts_g2_twin(sq_n1, sq_n2, dc_s, dc_i, eta_s, eta_i):
     """Test that dark counts are correctly included by updating the dark counts
     """
     nmax = 40
-    pmf = twinbeam_pmf(
-        nmax,
-        eta_s=eta_s,
-        eta_i=eta_i,
-        poisson_param_ns=dc_s,
-        poisson_param_ni=dc_i,
-        twin_bose=[sq_n1, sq_n2],
-    )
+    pmf = twinbeam_pmf(nmax, eta_s=eta_s, eta_i=eta_i, poisson_param_ns=dc_s, poisson_param_ni=dc_i, twin_bose=[sq_n1, sq_n2],)
     K = (sq_n1 + sq_n2) ** 2 / (sq_n1 ** 2 + sq_n2 ** 2)
     M = sq_n1 + sq_n2
     g2noiseless = 1.0 + 1.0 / K

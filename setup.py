@@ -13,15 +13,17 @@
 # limitations under the License.
 
 #!/usr/bin/env python3
-
+r"""Basic setup module"""
 from setuptools import setup
 
 
-setup(name='sqtom',
-	version='0.1',
-	description='squeezing mode tomography',
-	url='https://github.com/XanaduAI/sqtom',
-	author='Xanadu',
-	author_email='nicolas@xanadu.ai',
-	license='Apache',
-	packages=['sqtom'])
+setup(
+    name="sqtom",
+    version="0.1",
+    description="squeezing mode tomography",
+    url="https://github.com/XanaduAI/sqtom",
+    author="Xanadu",
+    author_email="nicolas@xanadu.ai",
+    license="Apache",
+    packages=["sqtom"],
+)
