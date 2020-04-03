@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
-from sqtom import degenerate_pmf, model_1d, fit_1d
+from sqtom.forward_solver import degenerate_pmf
+from sqtom.fitting_1d import model_1d, fit_1d
 
 
 @pytest.mark.parametrize("model", ["NoneFixed", "LossFixed", "NoiseFixed", "NoiseLossFixed"])
