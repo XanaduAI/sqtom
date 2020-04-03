@@ -1,6 +1,6 @@
 import numpy as np
 from lmfit import Minimizer, Parameters
-import photon_tom as pt
+from .photon_tom import degenerate_pmf
 
 
 def marginal_calcs_1d(pd_data, as_dict=True):
@@ -34,7 +34,7 @@ def model_1d(params, pd_data, n_max=50):
     sq_n = [params["sq_n" + str(i)] for i in range(n_modes)]
     eta = params["eta"]
     n_dark = params["n_dark"]
-    model_pmf = pt.degenerate_pmf(n_max, eta=eta, sq_n=sq_n, n_dark=n_dark)[0:dim]
+    model_pmf = degenerate_pmf(n_max, eta=eta, sq_n=sq_n, n_dark=n_dark)[0:dim]
 
     return model_pmf - pd_data
 

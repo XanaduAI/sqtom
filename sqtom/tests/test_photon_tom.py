@@ -1,6 +1,4 @@
-from photon_tom import twinbeam_pmf, loss_mat, degenerate_pmf
-from fitting_2d import marginal_calcs_2d, gen_hist_2d, two_schmidt_mode_guess
-from fitting_1d import marginal_calcs_1d
+from sqtom import twinbeam_pmf, loss_mat, degenerate_pmf, marginal_calcs_2d, gen_hist_2d, two_schmidt_mode_guess, marginal_calcs_1d
 import pytest
 import numpy as np
 from scipy.stats import geom
