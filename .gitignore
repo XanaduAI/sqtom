@@ -1,0 +1,9 @@
+*~
+*.pyc
+sqtom.egg-info
+build
+dist
+.coverage
+coverage_html_report/*
+*.ipynb_checkpoints
+.pytest_cache/*
