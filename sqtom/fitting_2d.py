@@ -49,3 +49,17 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
         return {"ns": ns, "ni": ni, "g11": g11, "g2s": g2s, "g2i": g2i}
     return np.array([ns, ni, g11, g2s, g2i])
 
+def gen_hist_2d(beam1, beam2):
+    """Calculate the joint probability mass function of joint events.
+    Args:
+        beam1 (array): 1D events array containing the raw click events of first beam
+        beam2 (array): 1D events array containing the raw click events of second beam
+    Returns:
+        (array): probability mass function of the click patterns in vals.
+    """
+    nx = np.max(beam1)
+    ny = np.max(beam2)
+    xedges = np.arange(nx + 2)
+    yedges = np.arange(ny + 2)
+    mass_fun, xedges, yedges = np.histogram2d(beam1, beam2, bins=(xedges, yedges), normed=True)
+    return mass_fun
