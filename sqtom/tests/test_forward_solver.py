@@ -115,10 +115,10 @@ def test_two_schmidt_mode_guess_exact(eta_s, eta_i, sq_n1, sq_n2):
 
 
 # pylint: disable=too-many-locals
-@pytest.mark.parametrize("eta_s", [0.1, 0.5, 1.0])
-@pytest.mark.parametrize("eta_i", [0.1, 0.5, 1.0])
-@pytest.mark.parametrize("sq_n1", [0.0, 0.1, 1.0, 2.0])
-@pytest.mark.parametrize("sq_n2", [0.1, 1.0, 2.0])
+@pytest.mark.parametrize("eta_s", [0.1, 1.0])
+@pytest.mark.parametrize("eta_i", [0.1, 1.0])
+@pytest.mark.parametrize("sq_n1", [0.0, 0.1, 1.0])
+@pytest.mark.parametrize("sq_n2", [0.1, 2.0])
 @pytest.mark.parametrize("dc_s", [0.2, 0.5])
 @pytest.mark.parametrize("dc_i", [0.2, 0.5])
 def test_dark_counts_g2_twin(sq_n1, sq_n2, dc_s, dc_i, eta_s, eta_i):
@@ -144,9 +144,9 @@ def test_dark_counts_g2_twin(sq_n1, sq_n2, dc_s, dc_i, eta_s, eta_i):
 @pytest.mark.parametrize("sq_n1", [0.0, 0.1, 1.0, 2.0])
 @pytest.mark.parametrize("sq_n2", [0.1, 1.0, 2.0])
 @pytest.mark.parametrize("dc", [0.2, 0.5])
-def test_g2_degenerate(eta, sq_n1, sq_n2, dc):
+@pytest.mark.parametrize("nmax", [49, 50])
+def test_g2_degenerate(eta, sq_n1, sq_n2, dc, nmax):
     """Test that the g2 of a single mode degenerate squeezer is 3+1/n regardless of the loss, where n is the mean photon number"""
-    nmax = 50
     ps = degenerate_pmf(nmax, sq_n=[sq_n1, sq_n2], eta=eta, n_dark=eta * dc)
     vals = marginal_calcs_1d(ps)
     K = (sq_n1 + sq_n2) ** 2 / (sq_n1 ** 2 + sq_n2 ** 2)
