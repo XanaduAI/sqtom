@@ -36,7 +36,7 @@ from numba import jit
 
 
 @jit(nopython=True)
-def loss_mat(eta, cutoff):
+def loss_mat(eta, cutoff): # pragma: no cover
     r""" Constructs a binomial loss matrix with transmission eta up to n photons.
 
     Args:
@@ -71,10 +71,7 @@ def twinbeam_pmf(
     eta_i=1.0,
     poisson_param_ns=0.0,
     poisson_param_ni=0.0,
-    bose_params_ns=None,
-    bose_params_ni=None,
     twin_bose=None,
-    twin_poisson=None,
 ):
     r"""  Contructs the joint probability mass function of a conjugate source for a total
     of n photons in both signal idler and for an overall loss after generation
@@ -87,12 +84,8 @@ def twinbeam_pmf(
         eta_i (float): Transmission in idler arm
         poisson_param_ns (float): Mean photon number of Poisson distribution hitting the signal detector
         poisson_param_ni (float): Mean photon number of Poisson distribution hitting the idler detector
-        bose_params_ns (array): Mean photon number(s) of a Bose distribution hitting the signal detector
-        bose_params_ni (array): Mean photon number(s) of a Bose distribution hitting the idler detector
         twin_bose (array): Mean photon number(s) of a Bose distribution in the diagonal of the joint probability mass function,
             representing different Schmidt modes
-        twin_poisson (array): Mean photon number(s) of a Poisson distribution in the diagonal of the joint probability mass function.
-            *Note:* This should only be used when g^2 is very close to 1.
 
     Returns:
         (array): `n\times n` matrix representing the joint probability mass function
@@ -103,32 +96,18 @@ def twinbeam_pmf(
     ns = poisson.pmf(np.arange(cutoff), poisson_param_ns)
     ni = poisson.pmf(np.arange(cutoff), poisson_param_ni)
 
-    if bose_params_ns is not None:
-        for nmean_ns in bose_params_ns:
-            ns = np.convolve(ns, geom.pmf(np.arange(1, cutoff + 1), 1.0 / (1.0 + nmean_ns),),)[:cutoff]
-    if bose_params_ni is not None:
-        for nmean_ni in bose_params_ni:
-            ni = np.convolve(ni, geom.pmf(np.arange(1, cutoff + 1), 1.0 / (1.0 + nmean_ni),),)[:cutoff]
-
     joint_pmf = np.outer(ns, ni)
     # Then convolve with the conjugate distributions if there are any.
-    if twin_bose is not None or twin_poisson is not None:
+
+    if twin_bose is not None:
         loss_mat_ns = loss_mat(float(eta_s), cutoff).T
         loss_mat_ni = loss_mat(float(eta_i), cutoff)
         twin_pmf = np.zeros([cutoff, cutoff])
         twin_pmf[0, 0] = 1.0
-
-        if twin_bose is not None:
-            for nmean in twin_bose:
-                twin_pmf = convolve2d(
-                    twin_pmf, np.diag(geom.pmf(np.arange(1, cutoff + 1), 1 / (1.0 + nmean),)),
-                )[0:cutoff, 0:cutoff]
-
-        if twin_poisson is not None:
-            for nmean in twin_poisson:
-                twin_pmf = convolve2d(twin_pmf, np.diag(poisson.pmf(np.arange(cutoff), nmean)),)[
-                    0:cutoff, 0:cutoff
-                ]
+        for nmean in twin_bose:
+            twin_pmf = convolve2d(
+                twin_pmf, np.diag(geom.pmf(np.arange(1, cutoff + 1), 1 / (1.0 + nmean),)),
+            )[0:cutoff, 0:cutoff]
 
         twin_pmf = loss_mat_ns @ twin_pmf @ loss_mat_ni
         joint_pmf = convolve2d(twin_pmf, joint_pmf)[:cutoff, :cutoff]
