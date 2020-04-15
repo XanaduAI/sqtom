@@ -57,16 +57,21 @@ def model_1d(params, pd_data, n_max=50):
         (array): rectangular array with the difference between the calculated model and pd_data
     """
     (dim,) = pd_data.shape
+
     n_modes = int(params["n_modes"])
     sq_n = [params["sq_n" + str(i)] for i in range(n_modes)]
     eta = params["eta"]
     n_dark = params["n_dark"]
     model_pmf = degenerate_pmf(n_max, eta=eta, sq_n=sq_n, n_dark=n_dark)[0:dim]
+    if "threshold" in params:
+    	threshold = int(params["threshold"])-1
+    	model_pmf[threshold] = np.sum(model_pmf[threshold:])
+    	model_pmf[(1+threshold):] = 0.0
 
     return model_pmf - pd_data
 
 
-def fit_1d(model_name, pd_data, guess, method="leastsq"):
+def fit_1d(pd_data, guess, method="leastsq", do_not_vary=[]):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
     Args:
@@ -79,24 +84,23 @@ def fit_1d(model_name, pd_data, guess, method="leastsq"):
     pars_model = Parameters()
     n_modes = guess["n_modes"]
     pars_model.add("n_modes", value=n_modes, vary=False)
+    if "threshold" in guess:
+    	pars_model.add("threshold", value=guess["threshold"], vary=False)
     # Add the squeezing parameters
     for i in range(n_modes):
         pars_model.add("sq_n" + str(i), value=guess["sq_n" + str(i)], min=0.0)
+    params = ["eta", "n_dark"]
 
-    if model_name == "NoiseFixed":
-        pars_model.add("eta", value=guess["eta"], min=0.0, max=1.0)
-        pars_model.add("n_dark", value=guess["n_dark"], vary=False)
-    elif model_name == "LossFixed":
-        pars_model.add("eta", value=guess["eta"], vary=False)
-        pars_model.add("n_dark", value=guess["n_dark"], min=0.0)
-    elif model_name == "NoiseLossFixed":
-        pars_model.add("eta", value=guess["eta"], vary=False)
-        pars_model.add("n_dark", value=guess["n_dark"], vary=False)
-    elif model_name == "NoneFixed":
-        pars_model.add("eta", value=guess["eta"], min=0.0, max=1.0)
-        pars_model.add("n_dark", value=guess["n_dark"], min=0.0)
+
+    if "eta" in do_not_vary:
+    	pars_model.add("eta", value=guess["eta"], vary=False)
     else:
-        raise NotImplementedError("Model " + model_name + " not implemented.")
+    	pars_model.add("eta", value=guess["eta"], min=0.0, max=1.0)
+
+    if "n_dark" in do_not_vary:
+    	pars_model.add("n_dark", value=guess["n_dark"], vary=False)
+    else:
+    	pars_model.add("n_dark", value=guess["n_dark"], min=0.0)
 
     minner_model = Minimizer(model_1d, pars_model, fcn_args=([pd_data]))
     result_model = minner_model.minimize(method=method)

@@ -25,6 +25,8 @@ Phys. Rev. A 95, 053806 (2017)
 """
 
 import numpy as np
+from lmfit import Minimizer, Parameters
+from sqtom.forward_solver import twinbeam_pmf
 
 def two_schmidt_mode_guess(jpd_data):
     """Given a two mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt occupations
@@ -45,7 +47,7 @@ def two_schmidt_mode_guess(jpd_data):
     etas = res["ns"] / Nbar
     etai = res["ni"] / Nbar
     noise = np.abs(res["g2s"] - res["g2i"]) * Nbar
-    return {"etas": etas, "etai": etai, "twin_n1": n1, "twin_n2": n2, "ns": noise * etas, "ni": noise * etai}
+    return {"etas": etas, "etai": etai, "sq_n0": n1, "sq_n1": n2, "ns": noise * etas, "ni": noise * etai}
 
 
 
@@ -88,3 +90,84 @@ def gen_hist_2d(beam1, beam2):
     yedges = np.arange(ny + 2)
     mass_fun, xedges, yedges = np.histogram2d(beam1, beam2, bins=(xedges, yedges), normed=True)
     return mass_fun
+
+
+
+def model_2d(params, pd_data, n_max=50):
+    """Constructs a joint probability distribution (jpd) given squeezer parameters
+    like noise, squeezing values and noise and the returns the difference between
+    the constructed jpd and the the jpd of the data that is to be fit.
+    Args:
+        params (dict): dictionary of all the Parameter objects required to specify a fit model
+        jpd_data (array): rectangular array with the probabilities of the photon events
+    Returns:
+        (array): rectangular array with the difference between the calculated model and pd_data
+    """
+    (dim_s,dim_i) = pd_data.shape
+
+    n_modes = int(params["n_modes"])
+    sq_n = [params["sq_n" + str(i)] for i in range(n_modes)]
+    etai = params["etai"]
+    etas = params["etas"]
+    ns = params["ns"]
+    ni = params["ni"]
+
+    if n_max in params:
+        n_max = params["n_max"]
+    else:
+        n_max=40
+    model_pmf = twinbeam_pmf(n_max, eta_s=etas, eta_i=etai, twin_bose=sq_n, poisson_param_ns=ns, poisson_param_ni=ni)[0:dim_s, 0:dim_i]
+    #if "threshold" in params:
+    #    threshold = int(params["threshold"])-1
+    #    model_pmf[threshold] = np.sum(model_pmf[threshold:])
+    #    model_pmf[(1+threshold):] = 0.0
+
+    return model_pmf - pd_data
+
+
+
+def fit_2d(pd_data, guess, method="leastsq", do_not_vary=[]):
+    """Takes as input the name of the model to fit to and the jpd of the data
+    and returns the fitted model.
+    Args:
+        model_name (str): describes the model used for fitting
+        pd_data (array): one dimensional array of the probability distribution of the data
+        guess (dict): dictionary with the guesses for the different parameters
+    Returns:
+        Object containing the optimized parameter and several goodness-of-fit statistics
+    """
+    pars_model = Parameters()
+    n_modes = guess["n_modes"]
+    pars_model.add("n_modes", value=n_modes, vary=False)
+    #if "threshold" in guess:
+    #    pars_model.add("threshold", value=guess["threshold"], vary=False)
+    # Add the squeezing parameters
+    for i in range(n_modes):
+        pars_model.add("sq_n" + str(i), value=guess["sq_n" + str(i)], min=0.0)
+
+
+    if "etas" in do_not_vary:
+        pars_model.add("etas", value=guess["etas"], vary=False)
+    else:
+        pars_model.add("etas", value=guess["etas"], min=0.0, max=1.0)
+
+    if "eta_i" in do_not_vary:
+        pars_model.add("etai", value=guess["etai"], vary=False)
+    else:
+        pars_model.add("etai", value=guess["etai"], min=0.0, max=1.0)
+
+
+    if "ns" in do_not_vary:
+        pars_model.add("ns", value=guess["ns"], vary=False)
+    else:
+        pars_model.add("ns", value=guess["ns"], min=0.0)
+
+    if "ni" in do_not_vary:
+        pars_model.add("ni", value=guess["ni"], vary=False)
+    else:
+        pars_model.add("ni", value=guess["ni"], min=0.0)
+
+    minner_model = Minimizer(model_2d, pars_model, fcn_args=([pd_data]))
+    result_model = minner_model.minimize(method=method)
+
+    return result_model
