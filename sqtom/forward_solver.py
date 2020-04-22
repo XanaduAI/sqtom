@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Twin bean forward-problem solver
-================================
+Twin-beam and degenerate forward-problem solver
+===============================================
 This module solves the *forward* problem of given a set of parameters describing different
 quantum state in two beams producing the joint photon number distribution. This joint
 photon number distribution can then be passed to lmfit to solve the inverse problem using
@@ -69,12 +69,12 @@ def twinbeam_pmf(params, cutoff = 50):
     else:
         eta_i = 1.0
 
-    # First convolve all the 1-d distirbutions.
+    # First convolve all the 1-d distributions.
     ns = poisson.pmf(np.arange(cutoff), noise_s)
     ni = poisson.pmf(np.arange(cutoff), noise_i)
 
     joint_pmf = np.outer(ns, ni)
-    # Then convolve with the conjugate distributions if there are any.
+    # Then convolve with the twin beam distributions if there are any.
     if "n_modes" in params:
         n_modes = int(params["n_modes"])
         sq = [float(params["sq_" + str(i)]) for i in range(n_modes)]
