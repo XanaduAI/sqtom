@@ -25,7 +25,6 @@ from sqtom.fitting_2d import marginal_calcs_2d, two_schmidt_mode_guess, gen_hist
 import pytest
 
 
-
 # pylint: disable=too-many-locals
 @pytest.mark.parametrize("sq_0", [0.0, 0.1, 1.0])
 @pytest.mark.parametrize("sq_1", [0.1, 2.0])
@@ -37,7 +36,15 @@ def test_twin_correct_stats(sq_0, sq_1, noise_s, noise_i, eta_s, eta_i):
     """Test that dark counts are correctly included by calculatin expected g2s and mean photon numbers
     """
     cutoff = 40
-    params = {"n_modes":2, "eta_s":eta_s, "eta_i":eta_i, "noise_s":noise_s, "noise_i":noise_i, "sq_0":sq_0, "sq_1":sq_1}
+    params = {
+        "n_modes": 2,
+        "eta_s": eta_s,
+        "eta_i": eta_i,
+        "noise_s": noise_s,
+        "noise_i": noise_i,
+        "sq_0": sq_0,
+        "sq_1": sq_1,
+    }
     pmf = twinbeam_pmf(params, cutoff=cutoff)
     K = (sq_0 + sq_1) ** 2 / (sq_0 ** 2 + sq_1 ** 2)
     M = sq_0 + sq_1
@@ -59,7 +66,7 @@ def test_twin_correct_stats(sq_0, sq_1, noise_s, noise_i, eta_s, eta_i):
 @pytest.mark.parametrize("noise", [0.2, 0.5])
 def test_degenerate_correct_stats(eta, sq_0, sq_1, noise):
     """Test that the g2 of a single mode degenerate squeezer is 3+1/n regardless of the loss, where n is the mean photon number"""
-    params = {"n_modes":2, "eta":eta, "noise":noise, "sq_0":sq_0, "sq_1":sq_1}
+    params = {"n_modes": 2, "eta": eta, "noise": noise, "sq_0": sq_0, "sq_1": sq_1}
     ps = degenerate_pmf(params)
     vals = marginal_calcs_1d(ps)
     K = (sq_0 + sq_1) ** 2 / (sq_0 ** 2 + sq_1 ** 2)
