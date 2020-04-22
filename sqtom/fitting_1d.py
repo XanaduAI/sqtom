@@ -33,6 +33,12 @@ from sqtom.forward_solver import degenerate_pmf
 def marginal_calcs_1d(pd_data, as_dict=True):
     """ Given a one dimensional array of probabilities it calculates the mean photon number
     and the g2.
+    Args:
+        pd_data (array): probability mass function of the photon events
+        as_dict (boolean): whether to return the results as a dictionary
+    Returns:
+        dict or array: values of the mean photons number the corresponding g2.
+
     """
 
     intn = pd_data.shape[0]
@@ -70,6 +76,8 @@ def fit_1d(
         method (string): method to be used by the optimizer
         do_not_vary (list): list of variables that should be held constant during optimization
         threshold (boolean or int): whether to threshold the photon probbailitites at value threshold
+        cutoff (int): internal cutoff
+
     Returns:
         Object containing the optimized parameter and several goodness-of-fit statistics
     """

@@ -60,14 +60,14 @@ def two_schmidt_mode_guess(jpd_data):
 
 def marginal_calcs_2d(jpd_data, as_dict=True):
     """ Given a two dimensional array of probabilities it calculates the first
-    two moments of the marginal distributions and also their g2's and g11
-    It returns these values as a dictionary
+    the mean photon numbers, their g2's and g11.
+    It returns these values as a dictionary or as an array
 
     Args:
-        jpd_data (array): rectangular array with the probability mass functions of the photon events
-
+        jpd_data (array): probability mass function of the photon events
+        as_dict (boolean): whether to return the results as a dictionary
     Returns:
-        dict or list: values of the mean photons number for signal and idlers, their corresponding g2 and their g11.
+        dict or array: values of the mean photons number for signal and idlers, their corresponding g2 and their g11.
     """
     inta, intb = jpd_data.shape
     na = np.arange(inta)
@@ -92,7 +92,7 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
 
 
 def gen_hist_2d(beam1, beam2):
-    """Calculate the joint probability mass function of joint events.
+    """Calculate the joint probability mass function of events.
     Args:
         beam1 (array): 1D events array containing the raw click events of first beam
         beam2 (array): 1D events array containing the raw click events of second beam
@@ -113,9 +113,11 @@ def fit_2d(
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
     Args:
-        model_name (str): describes the model used for fitting
         pd_data (array): one dimensional array of the probability distribution of the data
         guess (dict): dictionary with the guesses for the different parameters
+        method (string): method to be used by the optimizer
+        do_not_vary (list): list of variables that should be held constant during optimization
+        cutoff (int): internal cutoff
     Returns:
         Object containing the optimized parameter and several goodness-of-fit statistics
     """
