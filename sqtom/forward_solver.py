@@ -28,41 +28,12 @@ Phys. Rev. A 95, 053806 (2017)
 
 
 import numpy as np
-from scipy.stats import poisson, geom, nbinom
+from thewalrus.quantum import loss_mat, gen_single_mode_dist
+from scipy.stats import poisson, geom
 from scipy.signal import convolve2d
 
 from numba import jit
 
-
-
-@jit(nopython=True)
-def loss_mat(eta, cutoff): # pragma: no cover
-    r""" Constructs a binomial loss matrix with transmission eta up to n photons.
-
-    Args:
-        eta (float): Transmission coefficient. eta=0.0 means complete loss and eta=1.0 means no loss.
-        n (int): photon number cutoff.
-
-    Returns:
-        array: :math:`n\times n` matrix representing the loss.
-
-    """
-    # If full transmission return the identity
-    eta = float(eta)
-    if eta < 0.0 or eta > 1.0:
-        raise ValueError("The transmission parameter eta should be a number between 0 and 1.")
-
-    if eta == 1.0:
-        return np.identity(cutoff)
-
-    # Otherwise construct the matrix elements recursively
-    lm = np.zeros((cutoff, cutoff))
-    mu = 1.0 - eta
-    lm[:, 0] = mu ** (np.arange(cutoff))
-    for i in range(cutoff):
-        for j in range(1, i + 1):
-            lm[i, j] = lm[i, j - 1] * (eta / mu) * (i - j + 1) / (j)
-    return lm
 
 #pylint: disable=too-many-arguments
 def twinbeam_pmf(
@@ -115,28 +86,6 @@ def twinbeam_pmf(
     return joint_pmf
 
 
-def _gen_single_mode_dist(s, cutoff=50):
-    """Generate the photon number distribution of a single mode squeezed state.
-    Args:
-        s (float): squeezing parameter
-        cutoff (int): Fock cutoff
-    Returns:
-        (array): Photon number distribution
-    """
-    r = 0.5
-    q = 1.0 - np.tanh(s) ** 2
-    N = cutoff // 2
-    ps_tot = np.zeros(cutoff)
-    if cutoff % 2 == 0:
-        ps = nbinom.pmf(np.arange(N), p=q, n=r)
-        ps_tot[0::2] = ps
-    else:
-        ps = nbinom.pmf(np.arange(N + 1), p=q, n=r)
-        ps_tot[0:-1][0::2] = ps[0:-1]
-        ps_tot[-1] = ps[-1]
-
-    return ps_tot
-
 
 def degenerate_pmf(cutoff, sq_n=None, eta=1.0, n_dark=None):
     """Generates the total photon number distribution of single mode squeezed states with different squeezing values.
@@ -154,7 +103,7 @@ def degenerate_pmf(cutoff, sq_n=None, eta=1.0, n_dark=None):
     if sq_n is not None:
         mat = loss_mat(float(eta), cutoff)
         for n_val in sq_n:
-            ps = np.convolve(ps, _gen_single_mode_dist(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff) @ mat)[:cutoff]
+            ps = np.convolve(ps, gen_single_mode_dist(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff) @ mat)[:cutoff]
     if n_dark is not None:
         ps = np.convolve(ps, poisson.pmf(np.arange(cutoff), n_dark))[:cutoff]
     return ps[:cutoff]
