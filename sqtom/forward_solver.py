@@ -32,62 +32,68 @@ from thewalrus.quantum import loss_mat, gen_single_mode_dist
 from scipy.stats import poisson, geom
 from scipy.signal import convolve2d
 
-from numba import jit
-
-
-#pylint: disable=too-many-arguments
-def twinbeam_pmf(
-    cutoff,
-    eta_s=1.0,
-    eta_i=1.0,
-    poisson_param_ns=0.0,
-    poisson_param_ni=0.0,
-    twin_bose=None,
-):
+def twinbeam_pmf(params, cutoff = 50):
     r"""  Contructs the joint probability mass function of a conjugate source for a total
     of n photons in both signal idler and for an overall loss after generation
     characterized by the transmissions etas and etai.
     The source is described by either conjugate (correlated) and uncorrelated parts.
 
     Args:
-        cutoff (int): Photon number cutoff
-        eta_s (float): Transmission in the signal arm
-        eta_i (float): Transmission in idler arm
-        poisson_param_ns (float): Mean photon number of Poisson distribution hitting the signal detector
-        poisson_param_ni (float): Mean photon number of Poisson distribution hitting the idler detector
-        twin_bose (array): Mean photon number(s) of a Bose distribution in the diagonal of the joint probability mass function,
-            representing different Schmidt modes
-
+        params (dict): Parameter dictionary, with possible keys "noise_s", "noise_i" for the
+        Poisson noise mean photons numbers, "eta_s", "eta_i" for the transmission of the twin_beams,
+        "n_modes" describing the number of twin_beams a sq_0,..,sq_n where n = n_modes giveing the means
+        photon numbers of the different twin_beams.
+        ""
+        cutoff (int): Fock cutoff.
     Returns:
         (array): `n\times n` matrix representing the joint probability mass function
 
     """
+    if "noise_s" in params:
+        noise_s = float(params["noise_s"])
+    else:
+        noise_s = 0.0
+
+    if "noise_i" in params:
+        noise_i = float(params["noise_i"])
+    else:
+        noise_i = 0.0
+
+    if "eta_s" in params:
+        eta_s = float(params["eta_s"])
+    else:
+        eta_s = 1.0
+
+    if "eta_i" in params:
+        eta_i = float(params["eta_i"])
+    else:
+        eta_i = 1.0
 
     # First convolve all the 1-d distirbutions.
-    ns = poisson.pmf(np.arange(cutoff), poisson_param_ns)
-    ni = poisson.pmf(np.arange(cutoff), poisson_param_ni)
+    ns = poisson.pmf(np.arange(cutoff), noise_s)
+    ni = poisson.pmf(np.arange(cutoff), noise_i)
 
     joint_pmf = np.outer(ns, ni)
     # Then convolve with the conjugate distributions if there are any.
-
-    if twin_bose is not None:
-        loss_mat_ns = loss_mat(float(eta_s), cutoff).T
-        loss_mat_ni = loss_mat(float(eta_i), cutoff)
+    if "n_modes" in params:
+        n_modes = int(params["n_modes"])
+        sq = [float(params["sq_" + str(i)]) for i in range(n_modes)]
+        loss_mat_ns = loss_mat(eta_s, cutoff).T
+        loss_mat_ni = loss_mat(eta_i, cutoff)
         twin_pmf = np.zeros([cutoff, cutoff])
         twin_pmf[0, 0] = 1.0
-        for nmean in twin_bose:
+        for nmean in sq:
             twin_pmf = convolve2d(
-                twin_pmf, np.diag(geom.pmf(np.arange(1, cutoff + 1), 1 / (1.0 + nmean),)),
+                twin_pmf,
+                np.diag(geom.pmf(np.arange(1, cutoff + 1), 1 / (1.0 + nmean),)),
             )[0:cutoff, 0:cutoff]
-
         twin_pmf = loss_mat_ns @ twin_pmf @ loss_mat_ni
         joint_pmf = convolve2d(twin_pmf, joint_pmf)[:cutoff, :cutoff]
 
     return joint_pmf
 
 
-
-def degenerate_pmf(cutoff, sq_n=None, eta=1.0, n_dark=None):
+def degenerate_pmf(params, cutoff=50):
     """Generates the total photon number distribution of single mode squeezed states with different squeezing values.
     After each of them undergoes loss by amount eta
     Args:
@@ -98,12 +104,26 @@ def degenerate_pmf(cutoff, sq_n=None, eta=1.0, n_dark=None):
     Returns:
         (array[int]): total photon number distribution
     """
-    ps = np.zeros(cutoff)
-    ps[0] = 1.0
-    if sq_n is not None:
+    if "noise" in params:
+        noise = float(params["noise"])
+    else:
+        noise = 0.0
+
+    if "eta" in params:
+        eta = float(params["eta"])
+    else:
+        eta = 1.0
+
+    ps = poisson.pmf(np.arange(cutoff), noise)
+
+    if "n_modes" in params:
+        n_modes = int(params["n_modes"])
+        sq = [float(params["sq_" + str(i)]) for i in range(n_modes)]
         mat = loss_mat(float(eta), cutoff)
-        for n_val in sq_n:
-            ps = np.convolve(ps, gen_single_mode_dist(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff) @ mat)[:cutoff]
-    if n_dark is not None:
-        ps = np.convolve(ps, poisson.pmf(np.arange(cutoff), n_dark))[:cutoff]
+        for n_val in sq:
+            ps = np.convolve(
+                ps,
+                gen_single_mode_dist(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff) @ mat,
+            )[:cutoff]
+
     return ps[:cutoff]

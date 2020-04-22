@@ -73,8 +73,8 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
     g2i = (ni2 - ni) / ni ** 2
     g11 = (na @ jpd_data @ nb) / (ns * ni)
     if as_dict is True:
-        return {"ns": ns, "ni": ni, "g11": g11, "g2s": g2s, "g2i": g2i}
-    return np.array([ns, ni, g11, g2s, g2i])
+        return {"n_s": ns, "n_i": ni, "g11": g11, "g2_s": g2s, "g2_i": g2i}
+    return np.array([n_s, n_i, g11, g2_s, g2_i])
 
 def gen_hist_2d(beam1, beam2):
     """Calculate the joint probability mass function of joint events.
