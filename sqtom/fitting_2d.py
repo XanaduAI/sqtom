@@ -40,14 +40,14 @@ def two_schmidt_mode_guess(jpd_data):
         dict: Dictionary containing a set of "reasonable" model parameters.
     """
     res = marginal_calcs_2d(jpd_data)
-    g2avg = np.max([0.5 * (res["g2s"] + res["g2i"]), 1.5])
+    g2avg = np.max([0.5 * (res["g2_s"] + res["g2_i"]), 1.5])
     Nbar = 1.0 / (res["g11"] - g2avg)
-    n1 = 0.5 * (1 + np.sqrt(2 * g2avg - 3)) * Nbar
-    n2 = 0.5 * (1 - np.sqrt(2 * g2avg - 3)) * Nbar
-    etas = res["ns"] / Nbar
-    etai = res["ni"] / Nbar
-    noise = np.abs(res["g2s"] - res["g2i"]) * Nbar
-    return {"etas": etas, "etai": etai, "sq_n0": n1, "sq_n1": n2, "ns": noise * etas, "ni": noise * etai}
+    n0 = 0.5 * (1 + np.sqrt(2 * g2avg - 3)) * Nbar
+    n1 = 0.5 * (1 - np.sqrt(2 * g2avg - 3)) * Nbar
+    etas = res["n_s"] / Nbar
+    etai = res["n_i"] / Nbar
+    noise = np.abs(res["g2_s"] - res["g2_i"]) * Nbar
+    return {"eta_s": etas, "eta_i": etai, "sq_0": n0, "sq_1": n1, "noise_s": noise * etas, "noise_i": noise * etai}
 
 
 
@@ -73,7 +73,7 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
     g2i = (ni2 - ni) / ni ** 2
     g11 = (na @ jpd_data @ nb) / (ns * ni)
     if as_dict is True:
-        return {"n_s": ns, "n_i": ni, "g11": g11, "g2_s": g2s, "g2_i": g2i}
+        return {"n_s": ns, "n_i": ni, "g11": g11, "g2_s": g2s, "g2_i": g2i, "n_modes":2}
     return np.array([n_s, n_i, g11, g2_s, g2_i])
 
 def gen_hist_2d(beam1, beam2):
@@ -88,7 +88,7 @@ def gen_hist_2d(beam1, beam2):
     ny = np.max(beam2)
     xedges = np.arange(nx + 2)
     yedges = np.arange(ny + 2)
-    mass_fun, xedges, yedges = np.histogram2d(beam1, beam2, bins=(xedges, yedges), normed=True)
+    mass_fun, _, _ = np.histogram2d(beam1, beam2, bins=(xedges, yedges), normed=True)
     return mass_fun
 
 
@@ -143,29 +143,29 @@ def fit_2d(pd_data, guess, method="leastsq", do_not_vary=[]):
     #    pars_model.add("threshold", value=guess["threshold"], vary=False)
     # Add the squeezing parameters
     for i in range(n_modes):
-        pars_model.add("sq_n" + str(i), value=guess["sq_n" + str(i)], min=0.0)
+        pars_model.add("sq_" + str(i), value=guess["sq_" + str(i)], min=0.0)
 
 
-    if "etas" in do_not_vary:
-        pars_model.add("etas", value=guess["etas"], vary=False)
+    if "eta_s" in do_not_vary:
+        pars_model.add("eta_s", value=guess["eta_s"], vary=False)
     else:
-        pars_model.add("etas", value=guess["etas"], min=0.0, max=1.0)
+        pars_model.add("eta_s", value=guess["eta_s"], min=0.0, max=1.0)
 
     if "eta_i" in do_not_vary:
-        pars_model.add("etai", value=guess["etai"], vary=False)
+        pars_model.add("eta_i", value=guess["eta_i"], vary=False)
     else:
-        pars_model.add("etai", value=guess["etai"], min=0.0, max=1.0)
+        pars_model.add("eta_i", value=guess["eta_i"], min=0.0, max=1.0)
 
 
-    if "ns" in do_not_vary:
-        pars_model.add("ns", value=guess["ns"], vary=False)
+    if "noise_s" in do_not_vary:
+        pars_model.add("noise_s", value=guess["noise_s"], vary=False)
     else:
-        pars_model.add("ns", value=guess["ns"], min=0.0)
+        pars_model.add("noise_s", value=guess["noise_s"], min=0.0)
 
-    if "ni" in do_not_vary:
-        pars_model.add("ni", value=guess["ni"], vary=False)
+    if "noise_i" in do_not_vary:
+        pars_model.add("noise_i", value=guess["noise_i"], vary=False)
     else:
-        pars_model.add("ni", value=guess["ni"], min=0.0)
+        pars_model.add("noise_i", value=guess["noise_i"], min=0.0)
 
     minner_model = Minimizer(model_2d, pars_model, fcn_args=([pd_data]))
     result_model = minner_model.minimize(method=method)

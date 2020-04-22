@@ -16,7 +16,8 @@
 import pytest
 import numpy as np
 from sqtom.forward_solver import degenerate_pmf
-from sqtom.fitting_1d import fit_1d, threshold_1d
+from sqtom.fitting_1d import fit_1d, threshold_1d, marginal_calcs_1d
+
 
 
 @pytest.mark.parametrize("do_not_vary", ["eta", "noise", []])
