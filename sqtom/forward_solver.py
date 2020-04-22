@@ -41,7 +41,7 @@ def twinbeam_pmf(params, cutoff = 50):
     Args:
         params (dict): Parameter dictionary, with possible keys "noise_s", "noise_i" for the
         Poisson noise mean photons numbers, "eta_s", "eta_i" for the transmission of the twin_beams,
-        "n_modes" describing the number of twin_beams a sq_0,..,sq_n where n = n_modes giveing the means
+        "n_modes" describing the number of twin_beams a sq_0,..,sq_n where n = n_modes giving the means
         photon numbers of the different twin_beams.
         ""
         cutoff (int): Fock cutoff.
@@ -97,10 +97,12 @@ def degenerate_pmf(params, cutoff=50):
     """Generates the total photon number distribution of single mode squeezed states with different squeezing values.
     After each of them undergoes loss by amount eta
     Args:
-        cutoff (int): Fock cutoff
-        sq_n (array): array of mean photon numbers of the squeezed modes
-        eta (float): Amount of loss
-        n_dark (float): mean photon of the mode responsible for dark counts
+        params (dict): Parameter dictionary, with possible keys "noise", for the
+        Poisson noise mean photons number, "eta"  for the transmission of the degenerate squeezer,
+        "n_modes" describing the number of squeezed states sq_0,..,sq_n where n = n_modes giving the mean
+        photon numbers of the different degenerate squeezer.
+        ""
+        cutoff (int): Fock cutoff.
     Returns:
         (array[int]): total photon number distribution
     """
