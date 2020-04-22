@@ -16,8 +16,12 @@
 import pytest
 import numpy as np
 from sqtom.forward_solver import twinbeam_pmf
-from sqtom.fitting_2d import fit_2d, gen_hist_2d, two_schmidt_mode_guess
-
+from sqtom.fitting_2d import (
+    fit_2d,
+    gen_hist_2d,
+    two_schmidt_mode_guess,
+    marginal_calcs_2d,
+)
 
 
 @pytest.mark.parametrize("sq_0", [0.1, 1.0, 2.0])
@@ -29,8 +33,9 @@ def test_gen_hist_2d_twin(sq_0):
     mat = gen_hist_2d(samples, samples)
     n, m = mat.shape
     assert n == m
-    expected = twinbeam_pmf({"sq_0":sq_0, "n_modes":1}, cutoff=n)
+    expected = twinbeam_pmf({"sq_0": sq_0, "n_modes": 1}, cutoff=n)
     assert np.allclose(mat, expected, atol=0.01)
+
 
 @pytest.mark.parametrize("ns", [0.1, 1.0, 2.0])
 @pytest.mark.parametrize("ni", [0.1, 1.0, 2.0])
@@ -40,8 +45,10 @@ def test_gen_hist_2d_poisson(ns, ni):
     mat = gen_hist_2d(np.random.poisson(ns, nsamples), np.random.poisson(ni, nsamples))
     n, m = mat.shape
     nmax = np.max([n, m])
-    expected = twinbeam_pmf({"noise_s":ns, "noise_i":ni})[:n, :m]
+    expected = twinbeam_pmf({"noise_s": ns, "noise_i": ni})[:n, :m]
     np.allclose(expected, mat, atol=0.01)
+
+
 @pytest.mark.parametrize("eta_s", [0.1, 0.5, 1.0])
 @pytest.mark.parametrize("eta_i", [0.1, 0.5, 1.0])
 @pytest.mark.parametrize("sq_0", [0.0, 0.1, 1.0, 2.0])
@@ -50,7 +57,9 @@ def test_two_schmidt_mode_guess_exact(eta_s, eta_i, sq_0, sq_1):
     """Test that one can invert correctly when there are two Schmidt modes
     and no dark counts.
     """
-    pmf = twinbeam_pmf({"sq_0":sq_0, "sq_1":sq_1, "n_modes":2, "eta_s":eta_s, "eta_i":eta_i})
+    pmf = twinbeam_pmf(
+        {"sq_0": sq_0, "sq_1": sq_1, "n_modes": 2, "eta_s": eta_s, "eta_i": eta_i}
+    )
     guess = two_schmidt_mode_guess(pmf)
     assert np.allclose(eta_s, guess["eta_s"], atol=1.0e-2)
     assert np.allclose(eta_i, guess["eta_i"], atol=1.0e-2)
@@ -61,7 +70,7 @@ def test_two_schmidt_mode_guess_exact(eta_s, eta_i, sq_0, sq_1):
     assert np.allclose(sq_1, guess["sq_1"], atol=1.0e-2)
 
 
-@pytest.mark.parametrize("do_not_vary", ["eta_s", "noise_s", "eta_s", "noise_i",[]])
+@pytest.mark.parametrize("do_not_vary", ["eta_s", "noise_s", "eta_i", "noise_i", []])
 @pytest.mark.parametrize("n_modes", [1, 2, 3])
 @pytest.mark.parametrize("threshold", [False])
 def test_exact_model_2d(n_modes, do_not_vary, threshold):
@@ -83,3 +92,13 @@ def test_exact_model_2d(n_modes, do_not_vary, threshold):
         probs = twinbeam_pmf(params)
     fit = fit_2d(probs, params, threshold=threshold, do_not_vary=do_not_vary)
     assert np.allclose(fit.chisqr, 0.0)
+
+
+def test_marginal_calcs_2d():
+    """Tests that marginal_calcs_2d returns the correct values as an array"""
+    nmean = 1.0
+    ps = twinbeam_pmf({"n_modes": 1.0, "sq_0": nmean})
+    assert np.allclose(
+        marginal_calcs_2d(ps, as_dict=False),
+        np.array([nmean, nmean, 2 + 1 / nmean, 2, 2]),
+    )

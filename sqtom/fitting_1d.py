@@ -59,7 +59,9 @@ def threshold_1d(ps, nmax):
     return ps[:nmax]
 
 
-def fit_1d(pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50):
+def fit_1d(
+    pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50
+):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
     Args:
