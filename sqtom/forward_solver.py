@@ -28,10 +28,9 @@ Phys. Rev. A 95, 053806 (2017)
 
 
 import numpy as np
-from thewalrus.quantum import loss_mat, gen_single_mode_dist
 from scipy.stats import poisson, geom
 from scipy.signal import convolve2d
-
+from thewalrus.quantum import loss_mat, gen_single_mode_dist
 
 def twinbeam_pmf(params, cutoff=50):
     r"""  Contructs the joint probability mass function of a conjugate source for a total

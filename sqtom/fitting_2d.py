@@ -108,7 +108,7 @@ def gen_hist_2d(beam1, beam2):
 
 
 def fit_2d(
-    pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50
+    pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50
 ):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
@@ -145,9 +145,6 @@ def fit_2d(
     else:
         pars_model.add("noise_i", value=guess["noise_i"], min=0.0)
 
-    # if "threshold" in guess:
-    #    pars_model.add("threshold", value=guess["threshold"], vary=False)
-    # Add the squeezing parameters
     def model_2d(params, jpd_data):
         (dim_s, dim_i) = pd_data.shape
         return twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i] - pd_data
