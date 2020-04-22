@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Twin bean forward-problem solver
-================================
+Twin-beam and degenerate forward-problem solver
+===============================================
 This module solves the *forward* problem of given a set of parameters describing different
 quantum state in two beams producing the joint photon number distribution. This joint
 photon number distribution can then be passed to lmfit to solve the inverse problem using
@@ -28,133 +28,104 @@ Phys. Rev. A 95, 053806 (2017)
 
 
 import numpy as np
-from scipy.stats import poisson, geom, nbinom
+from scipy.stats import poisson, geom
 from scipy.signal import convolve2d
+from thewalrus.quantum import loss_mat, gen_single_mode_dist
 
-from numba import jit
-
-
-
-@jit(nopython=True)
-def loss_mat(eta, cutoff): # pragma: no cover
-    r""" Constructs a binomial loss matrix with transmission eta up to n photons.
-
-    Args:
-        eta (float): Transmission coefficient. eta=0.0 means complete loss and eta=1.0 means no loss.
-        n (int): photon number cutoff.
-
-    Returns:
-        array: :math:`n\times n` matrix representing the loss.
-
-    """
-    # If full transmission return the identity
-    eta = float(eta)
-    if eta < 0.0 or eta > 1.0:
-        raise ValueError("The transmission parameter eta should be a number between 0 and 1.")
-
-    if eta == 1.0:
-        return np.identity(cutoff)
-
-    # Otherwise construct the matrix elements recursively
-    lm = np.zeros((cutoff, cutoff))
-    mu = 1.0 - eta
-    lm[:, 0] = mu ** (np.arange(cutoff))
-    for i in range(cutoff):
-        for j in range(1, i + 1):
-            lm[i, j] = lm[i, j - 1] * (eta / mu) * (i - j + 1) / (j)
-    return lm
-
-#pylint: disable=too-many-arguments
-def twinbeam_pmf(
-    cutoff,
-    eta_s=1.0,
-    eta_i=1.0,
-    poisson_param_ns=0.0,
-    poisson_param_ni=0.0,
-    twin_bose=None,
-):
+def twinbeam_pmf(params, cutoff=50):
     r"""  Contructs the joint probability mass function of a conjugate source for a total
     of n photons in both signal idler and for an overall loss after generation
     characterized by the transmissions etas and etai.
     The source is described by either conjugate (correlated) and uncorrelated parts.
 
     Args:
-        cutoff (int): Photon number cutoff
-        eta_s (float): Transmission in the signal arm
-        eta_i (float): Transmission in idler arm
-        poisson_param_ns (float): Mean photon number of Poisson distribution hitting the signal detector
-        poisson_param_ni (float): Mean photon number of Poisson distribution hitting the idler detector
-        twin_bose (array): Mean photon number(s) of a Bose distribution in the diagonal of the joint probability mass function,
-            representing different Schmidt modes
-
+        params (dict): Parameter dictionary, with possible keys "noise_s", "noise_i" for the
+        Poisson noise mean photons numbers, "eta_s", "eta_i" for the transmission of the twin_beams,
+        "n_modes" describing the number of twin_beams a sq_0,..,sq_n where n = n_modes giving the means
+        photon numbers of the different twin_beams.
+        ""
+        cutoff (int): Fock cutoff.
     Returns:
         (array): `n\times n` matrix representing the joint probability mass function
 
     """
+    if "noise_s" in params:
+        noise_s = float(params["noise_s"])
+    else:
+        noise_s = 0.0
 
-    # First convolve all the 1-d distirbutions.
-    ns = poisson.pmf(np.arange(cutoff), poisson_param_ns)
-    ni = poisson.pmf(np.arange(cutoff), poisson_param_ni)
+    if "noise_i" in params:
+        noise_i = float(params["noise_i"])
+    else:
+        noise_i = 0.0
+
+    if "eta_s" in params:
+        eta_s = float(params["eta_s"])
+    else:
+        eta_s = 1.0
+
+    if "eta_i" in params:
+        eta_i = float(params["eta_i"])
+    else:
+        eta_i = 1.0
+
+    # First convolve all the 1-d distributions.
+    ns = poisson.pmf(np.arange(cutoff), noise_s)
+    ni = poisson.pmf(np.arange(cutoff), noise_i)
 
     joint_pmf = np.outer(ns, ni)
-    # Then convolve with the conjugate distributions if there are any.
-
-    if twin_bose is not None:
-        loss_mat_ns = loss_mat(float(eta_s), cutoff).T
-        loss_mat_ni = loss_mat(float(eta_i), cutoff)
+    # Then convolve with the twin beam distributions if there are any.
+    if "n_modes" in params:
+        n_modes = int(params["n_modes"])
+        sq = [float(params["sq_" + str(i)]) for i in range(n_modes)]
+        loss_mat_ns = loss_mat(eta_s, cutoff).T
+        loss_mat_ni = loss_mat(eta_i, cutoff)
         twin_pmf = np.zeros([cutoff, cutoff])
         twin_pmf[0, 0] = 1.0
-        for nmean in twin_bose:
+        for nmean in sq:
             twin_pmf = convolve2d(
-                twin_pmf, np.diag(geom.pmf(np.arange(1, cutoff + 1), 1 / (1.0 + nmean),)),
+                twin_pmf,
+                np.diag(geom.pmf(np.arange(1, cutoff + 1), 1 / (1.0 + nmean),)),
             )[0:cutoff, 0:cutoff]
-
         twin_pmf = loss_mat_ns @ twin_pmf @ loss_mat_ni
         joint_pmf = convolve2d(twin_pmf, joint_pmf)[:cutoff, :cutoff]
 
     return joint_pmf
 
 
-def _gen_single_mode_dist(s, cutoff=50):
-    """Generate the photon number distribution of a single mode squeezed state.
-    Args:
-        s (float): squeezing parameter
-        cutoff (int): Fock cutoff
-    Returns:
-        (array): Photon number distribution
-    """
-    r = 0.5
-    q = 1.0 - np.tanh(s) ** 2
-    N = cutoff // 2
-    ps_tot = np.zeros(cutoff)
-    if cutoff % 2 == 0:
-        ps = nbinom.pmf(np.arange(N), p=q, n=r)
-        ps_tot[0::2] = ps
-    else:
-        ps = nbinom.pmf(np.arange(N + 1), p=q, n=r)
-        ps_tot[0:-1][0::2] = ps[0:-1]
-        ps_tot[-1] = ps[-1]
-
-    return ps_tot
-
-
-def degenerate_pmf(cutoff, sq_n=None, eta=1.0, n_dark=None):
+def degenerate_pmf(params, cutoff=50):
     """Generates the total photon number distribution of single mode squeezed states with different squeezing values.
     After each of them undergoes loss by amount eta
     Args:
-        cutoff (int): Fock cutoff
-        sq_n (array): array of mean photon numbers of the squeezed modes
-        eta (float): Amount of loss
-        n_dark (float): mean photon of the mode responsible for dark counts
+        params (dict): Parameter dictionary, with possible keys "noise", for the
+        Poisson noise mean photons number, "eta"  for the transmission of the degenerate squeezer,
+        "n_modes" describing the number of squeezed states sq_0,..,sq_n where n = n_modes giving the mean
+        photon numbers of the different degenerate squeezer.
+        ""
+        cutoff (int): Fock cutoff.
     Returns:
         (array[int]): total photon number distribution
     """
-    ps = np.zeros(cutoff)
-    ps[0] = 1.0
-    if sq_n is not None:
+    if "noise" in params:
+        noise = float(params["noise"])
+    else:
+        noise = 0.0
+
+    if "eta" in params:
+        eta = float(params["eta"])
+    else:
+        eta = 1.0
+
+    ps = poisson.pmf(np.arange(cutoff), noise)
+
+    if "n_modes" in params:
+        n_modes = int(params["n_modes"])
+        sq = [float(params["sq_" + str(i)]) for i in range(n_modes)]
         mat = loss_mat(float(eta), cutoff)
-        for n_val in sq_n:
-            ps = np.convolve(ps, _gen_single_mode_dist(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff) @ mat)[:cutoff]
-    if n_dark is not None:
-        ps = np.convolve(ps, poisson.pmf(np.arange(cutoff), n_dark))[:cutoff]
+        for n_val in sq:
+            ps = np.convolve(
+                ps,
+                gen_single_mode_dist(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff) @ mat,
+            )[:cutoff]
+
     return ps[:cutoff]

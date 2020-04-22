@@ -31,11 +31,17 @@ from sqtom.forward_solver import degenerate_pmf
 
 
 def marginal_calcs_1d(pd_data, as_dict=True):
-    """ Given a two dimensional array of probabilities it calculates the first
-    two moments of the marginal distributions and also their g2's and g11
-    It returns these values as a dictionary"""
+    """ Given a one dimensional array of probabilities it calculates the mean photon number
+    and the g2.
+    Args:
+        pd_data (array): probability mass function of the photon events
+        as_dict (boolean): whether to return the results as a dictionary
+    Returns:
+        dict or array: values of the mean photons number the corresponding g2.
 
-    (intn,) = pd_data.shape
+    """
+
+    intn = pd_data.shape[0]
     n = np.arange(intn)
     nmean = pd_data @ n
     nmean2 = pd_data @ n ** 2
@@ -45,64 +51,64 @@ def marginal_calcs_1d(pd_data, as_dict=True):
     return np.array([nmean, g2])
 
 
-def model_1d(params, pd_data, n_max=50):
-    """Constructs a joint probability distribution (jpd) given squeezer parameters
-    like noise, squeezing values and noise and the returns the difference between
-    the constructed jpd and the the jpd of the data that is to be fit.
+def threshold_1d(ps, nmax):
+    """ Thresholds a probability distribution by assigning events with nmax photons or more to the nmax bin.
+
     Args:
-        params (dict): dictionary of all the Parameter objects required to specify a fit model
-        pd_data (array): rectangular array with the probability mass functions of the photon events
-        model_name (str): describes the model used for fitting
+        ps (array): Probability distribution
+        nmax (int): threshold value
     Returns:
-        (array): rectangular array with the difference between the calculated model and pd_data
+        (array): Thresholded probability distribuion.
     """
-    (dim,) = pd_data.shape
-
-    n_modes = int(params["n_modes"])
-    sq_n = [params["sq_n" + str(i)] for i in range(n_modes)]
-    eta = params["eta"]
-    n_dark = params["n_dark"]
-    model_pmf = degenerate_pmf(n_max, eta=eta, sq_n=sq_n, n_dark=n_dark)[0:dim]
-    if "threshold" in params:
-    	threshold = int(params["threshold"])-1
-    	model_pmf[threshold] = np.sum(model_pmf[threshold:])
-    	model_pmf[(1+threshold):] = 0.0
-
-    return model_pmf - pd_data
+    thr = nmax - 1
+    ps[thr] = np.sum(ps[thr:])
+    return ps[:nmax]
 
 
-def fit_1d(pd_data, guess, method="leastsq", do_not_vary=[]):
+def fit_1d(
+    pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50
+):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
     Args:
-        model_name (str): describes the model used for fitting
         pd_data (array): one dimensional array of the probability distribution of the data
         guess (dict): dictionary with the guesses for the different parameters
+        method (string): method to be used by the optimizer
+        do_not_vary (list): list of variables that should be held constant during optimization
+        threshold (boolean or int): whether to threshold the photon probbailitites at value threshold
+        cutoff (int): internal cutoff
+
     Returns:
         Object containing the optimized parameter and several goodness-of-fit statistics
     """
     pars_model = Parameters()
     n_modes = guess["n_modes"]
     pars_model.add("n_modes", value=n_modes, vary=False)
-    if "threshold" in guess:
-    	pars_model.add("threshold", value=guess["threshold"], vary=False)
     # Add the squeezing parameters
     for i in range(n_modes):
-        pars_model.add("sq_n" + str(i), value=guess["sq_n" + str(i)], min=0.0)
-    params = ["eta", "n_dark"]
-
+        pars_model.add("sq_" + str(i), value=guess["sq_" + str(i)], min=0.0)
 
     if "eta" in do_not_vary:
-    	pars_model.add("eta", value=guess["eta"], vary=False)
+        pars_model.add("eta", value=guess["eta"], vary=False)
     else:
-    	pars_model.add("eta", value=guess["eta"], min=0.0, max=1.0)
+        pars_model.add("eta", value=guess["eta"], min=0.0, max=1.0)
 
-    if "n_dark" in do_not_vary:
-    	pars_model.add("n_dark", value=guess["n_dark"], vary=False)
+    if "noise" in do_not_vary:
+        pars_model.add("noise", value=guess["noise"], vary=False)
     else:
-    	pars_model.add("n_dark", value=guess["n_dark"], min=0.0)
+        pars_model.add("noise", value=guess["noise"], min=0.0)
+
+    if threshold:
+
+        def model_1d(params, pd_data):
+            ndim = pd_data.shape[0]
+            return threshold_1d(degenerate_pmf(params, cutoff=cutoff), ndim) - pd_data
+
+    else:
+
+        def model_1d(params, pd_data):
+            ndim = pd_data.shape[0]
+            return degenerate_pmf(params, cutoff=cutoff)[:ndim] - pd_data
 
     minner_model = Minimizer(model_1d, pars_model, fcn_args=([pd_data]))
-    result_model = minner_model.minimize(method=method)
-
-    return result_model
+    return minner_model.minimize(method=method)

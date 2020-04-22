@@ -28,6 +28,7 @@ import numpy as np
 from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import twinbeam_pmf
 
+
 def two_schmidt_mode_guess(jpd_data):
     """Given a two mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt occupations
     and dark counts parameters.
@@ -40,27 +41,33 @@ def two_schmidt_mode_guess(jpd_data):
         dict: Dictionary containing a set of "reasonable" model parameters.
     """
     res = marginal_calcs_2d(jpd_data)
-    g2avg = np.max([0.5 * (res["g2s"] + res["g2i"]), 1.5])
+    g2avg = np.max([0.5 * (res["g2_s"] + res["g2_i"]), 1.5])
     Nbar = 1.0 / (res["g11"] - g2avg)
-    n1 = 0.5 * (1 + np.sqrt(2 * g2avg - 3)) * Nbar
-    n2 = 0.5 * (1 - np.sqrt(2 * g2avg - 3)) * Nbar
-    etas = res["ns"] / Nbar
-    etai = res["ni"] / Nbar
-    noise = np.abs(res["g2s"] - res["g2i"]) * Nbar
-    return {"etas": etas, "etai": etai, "sq_n0": n1, "sq_n1": n2, "ns": noise * etas, "ni": noise * etai}
-
+    n0 = 0.5 * (1 + np.sqrt(2 * g2avg - 3)) * Nbar
+    n1 = 0.5 * (1 - np.sqrt(2 * g2avg - 3)) * Nbar
+    etas = res["n_s"] / Nbar
+    etai = res["n_i"] / Nbar
+    noise = np.abs(res["g2_s"] - res["g2_i"]) * Nbar
+    return {
+        "eta_s": etas,
+        "eta_i": etai,
+        "sq_0": n0,
+        "sq_1": n1,
+        "noise_s": noise * etas,
+        "noise_i": noise * etai,
+    }
 
 
 def marginal_calcs_2d(jpd_data, as_dict=True):
     """ Given a two dimensional array of probabilities it calculates the first
-    two moments of the marginal distributions and also their g2's and g11
-    It returns these values as a dictionary
+    the mean photon numbers, their g2's and g11.
+    It returns these values as a dictionary or as an array
 
     Args:
-        jpd_data (array): rectangular array with the probability mass functions of the photon events
-
+        jpd_data (array): probability mass function of the photon events
+        as_dict (boolean): whether to return the results as a dictionary
     Returns:
-        dict or list: values of the mean photons number for signal and idlers, their corresponding g2 and their g11.
+        dict or array: values of the mean photons number for signal and idlers, their corresponding g2 and their g11.
     """
     inta, intb = jpd_data.shape
     na = np.arange(inta)
@@ -73,11 +80,19 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
     g2i = (ni2 - ni) / ni ** 2
     g11 = (na @ jpd_data @ nb) / (ns * ni)
     if as_dict is True:
-        return {"ns": ns, "ni": ni, "g11": g11, "g2s": g2s, "g2i": g2i}
+        return {
+            "n_s": ns,
+            "n_i": ni,
+            "g11": g11,
+            "g2_s": g2s,
+            "g2_i": g2i,
+            "n_modes": 2,
+        }
     return np.array([ns, ni, g11, g2s, g2i])
 
+
 def gen_hist_2d(beam1, beam2):
-    """Calculate the joint probability mass function of joint events.
+    """Calculate the joint probability mass function of events.
     Args:
         beam1 (array): 1D events array containing the raw click events of first beam
         beam2 (array): 1D events array containing the raw click events of second beam
@@ -88,84 +103,53 @@ def gen_hist_2d(beam1, beam2):
     ny = np.max(beam2)
     xedges = np.arange(nx + 2)
     yedges = np.arange(ny + 2)
-    mass_fun, xedges, yedges = np.histogram2d(beam1, beam2, bins=(xedges, yedges), normed=True)
+    mass_fun, _, _ = np.histogram2d(beam1, beam2, bins=(xedges, yedges), normed=True)
     return mass_fun
 
 
-
-def model_2d(params, pd_data, n_max=50):
-    """Constructs a joint probability distribution (jpd) given squeezer parameters
-    like noise, squeezing values and noise and the returns the difference between
-    the constructed jpd and the the jpd of the data that is to be fit.
-    Args:
-        params (dict): dictionary of all the Parameter objects required to specify a fit model
-        jpd_data (array): rectangular array with the probabilities of the photon events
-    Returns:
-        (array): rectangular array with the difference between the calculated model and pd_data
-    """
-    (dim_s,dim_i) = pd_data.shape
-
-    n_modes = int(params["n_modes"])
-    sq_n = [params["sq_n" + str(i)] for i in range(n_modes)]
-    etai = params["etai"]
-    etas = params["etas"]
-    ns = params["ns"]
-    ni = params["ni"]
-
-    if n_max in params:
-        n_max = params["n_max"]
-    else:
-        n_max=40
-    model_pmf = twinbeam_pmf(n_max, eta_s=etas, eta_i=etai, twin_bose=sq_n, poisson_param_ns=ns, poisson_param_ni=ni)[0:dim_s, 0:dim_i]
-    #if "threshold" in params:
-    #    threshold = int(params["threshold"])-1
-    #    model_pmf[threshold] = np.sum(model_pmf[threshold:])
-    #    model_pmf[(1+threshold):] = 0.0
-
-    return model_pmf - pd_data
-
-
-
-def fit_2d(pd_data, guess, method="leastsq", do_not_vary=[]):
+def fit_2d(
+    pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50
+):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
     Args:
-        model_name (str): describes the model used for fitting
         pd_data (array): one dimensional array of the probability distribution of the data
         guess (dict): dictionary with the guesses for the different parameters
+        method (string): method to be used by the optimizer
+        do_not_vary (list): list of variables that should be held constant during optimization
+        cutoff (int): internal cutoff
     Returns:
         Object containing the optimized parameter and several goodness-of-fit statistics
     """
     pars_model = Parameters()
     n_modes = guess["n_modes"]
     pars_model.add("n_modes", value=n_modes, vary=False)
-    #if "threshold" in guess:
-    #    pars_model.add("threshold", value=guess["threshold"], vary=False)
-    # Add the squeezing parameters
     for i in range(n_modes):
-        pars_model.add("sq_n" + str(i), value=guess["sq_n" + str(i)], min=0.0)
+        pars_model.add("sq_" + str(i), value=guess["sq_" + str(i)], min=0.0)
 
-
-    if "etas" in do_not_vary:
-        pars_model.add("etas", value=guess["etas"], vary=False)
+    if "eta_s" in do_not_vary:
+        pars_model.add("eta_s", value=guess["eta_s"], vary=False)
     else:
-        pars_model.add("etas", value=guess["etas"], min=0.0, max=1.0)
+        pars_model.add("eta_s", value=guess["eta_s"], min=0.0, max=1.0)
 
     if "eta_i" in do_not_vary:
-        pars_model.add("etai", value=guess["etai"], vary=False)
+        pars_model.add("eta_i", value=guess["eta_i"], vary=False)
     else:
-        pars_model.add("etai", value=guess["etai"], min=0.0, max=1.0)
+        pars_model.add("eta_i", value=guess["eta_i"], min=0.0, max=1.0)
 
-
-    if "ns" in do_not_vary:
-        pars_model.add("ns", value=guess["ns"], vary=False)
+    if "noise_s" in do_not_vary:
+        pars_model.add("noise_s", value=guess["noise_s"], vary=False)
     else:
-        pars_model.add("ns", value=guess["ns"], min=0.0)
+        pars_model.add("noise_s", value=guess["noise_s"], min=0.0)
 
-    if "ni" in do_not_vary:
-        pars_model.add("ni", value=guess["ni"], vary=False)
+    if "noise_i" in do_not_vary:
+        pars_model.add("noise_i", value=guess["noise_i"], vary=False)
     else:
-        pars_model.add("ni", value=guess["ni"], min=0.0)
+        pars_model.add("noise_i", value=guess["noise_i"], min=0.0)
+
+    def model_2d(params, jpd_data):
+        (dim_s, dim_i) = pd_data.shape
+        return twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i] - pd_data
 
     minner_model = Minimizer(model_2d, pars_model, fcn_args=([pd_data]))
     result_model = minner_model.minimize(method=method)

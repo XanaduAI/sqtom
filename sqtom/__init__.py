@@ -1,4 +1,3 @@
-
 # Copyright 2019 Xanadu Quantum Technologies Inc.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +14,8 @@
 r""" Code for mode tomography"""
 from ._version import __version__
 
-def version():
+
+def version():  # pragma: no cover
     r"""
     Get version number of sqtom
     Returns:
