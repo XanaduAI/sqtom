@@ -126,7 +126,7 @@ def model_2d(params, pd_data, n_max=50):
 
 
 
-def fit_2d(pd_data, guess, method="leastsq", do_not_vary=[]):
+def fit_2d(pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
     Args:
@@ -139,9 +139,6 @@ def fit_2d(pd_data, guess, method="leastsq", do_not_vary=[]):
     pars_model = Parameters()
     n_modes = guess["n_modes"]
     pars_model.add("n_modes", value=n_modes, vary=False)
-    #if "threshold" in guess:
-    #    pars_model.add("threshold", value=guess["threshold"], vary=False)
-    # Add the squeezing parameters
     for i in range(n_modes):
         pars_model.add("sq_" + str(i), value=guess["sq_" + str(i)], min=0.0)
 
@@ -166,6 +163,14 @@ def fit_2d(pd_data, guess, method="leastsq", do_not_vary=[]):
         pars_model.add("noise_i", value=guess["noise_i"], vary=False)
     else:
         pars_model.add("noise_i", value=guess["noise_i"], min=0.0)
+
+    #if "threshold" in guess:
+    #    pars_model.add("threshold", value=guess["threshold"], vary=False)
+    # Add the squeezing parameters
+    def model_2d(params, jpd_data):
+        (dim_s, dim_i) = pd_data.shape
+        return twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i] - pd_data
+
 
     minner_model = Minimizer(model_2d, pars_model, fcn_args=([pd_data]))
     result_model = minner_model.minimize(method=method)

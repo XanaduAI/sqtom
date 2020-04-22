@@ -59,7 +59,7 @@ def threshold_1d(ps, nmax):
     return ps[:nmax]
 
 
-def fit_1d(pd_data, guess, method="leastsq", do_not_vary=[], threshold=False):
+def fit_1d(pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
     Args:
@@ -92,13 +92,13 @@ def fit_1d(pd_data, guess, method="leastsq", do_not_vary=[], threshold=False):
 
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
-            return threshold_1d(degenerate_pmf(params), ndim) - pd_data
+            return threshold_1d(degenerate_pmf(params, cutoff=cutoff), ndim) - pd_data
 
     else:
 
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
-            return degenerate_pmf(params)[:ndim] - pd_data
+            return degenerate_pmf(params, cutoff=cutoff)[:ndim] - pd_data
 
     minner_model = Minimizer(model_1d, pars_model, fcn_args=([pd_data]))
     return minner_model.minimize(method=method)
