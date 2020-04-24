@@ -55,7 +55,7 @@ def two_schmidt_mode_guess(jpd_data):
         "sq_1": n1,
         "noise_s": noise * etas,
         "noise_i": noise * etai,
-        "n_modes": 2
+        "n_modes": 2,
     }
 
 
@@ -87,7 +87,6 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
             "g11": g11,
             "g2_s": g2s,
             "g2_i": g2i,
-            "n_modes": 2,
         }
     return np.array([ns, ni, g11, g2s, g2i])
 
