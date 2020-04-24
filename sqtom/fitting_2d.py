@@ -55,6 +55,7 @@ def two_schmidt_mode_guess(jpd_data):
         "sq_1": n1,
         "noise_s": noise * etas,
         "noise_i": noise * etai,
+        "n_modes": 2
     }
 
 
