@@ -72,6 +72,7 @@ def fit_1d(
 ):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
+
     Args:
         pd_data (array): one dimensional array of the probability distribution of the data
         guess (dict): dictionary with the guesses for the different parameters
