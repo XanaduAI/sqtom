@@ -25,7 +25,7 @@ To obtain the joint probability distribution of the photon numbers in the signal
 
 With the tools described so far we can solve the *forward* problem, i.e., given a set of physical parameters what is the probability distribution.
 
-* If we augment out tools with [lmfit](https://lmfit.github.io/lmfit-py/) we can solve the *inverse* problem: to find the best set of parameters that explain a given observed frequency distribution of photon numbers.
+* If we augment our tools with [lmfit](https://lmfit.github.io/lmfit-py/) we can solve the *inverse* problem: to find the best set of parameters that explain a given observed frequency distribution of photon numbers.
 
 Finally, we use [pytest](https://docs.pytest.org/en/latest/) for testing.
 
