@@ -19,25 +19,25 @@ To obtain the joint probability distribution of the photon numbers in the signal
 
 * [SciPy](https://www.scipy.org/) to calculate probability distributions of Poisson, Geometric or Negative Binomial random variables.
 
-* [Numba](http://numba.pydata.org/) to rapidly calculate the stochastic matrices that model loss.
-
 * [NumPy](https://numpy.org/) to perform 2D convolutions and matrix manipulations.
+
+* [The Walrus](https://the-walrus.readthedocs.io/en/latest/) to calculate loss matrices and squeezed states probability distributions.
 
 With the tools described so far we can solve the *forward* problem, i.e., given a set of physical parameters what is the probability distribution.
 
-* If we augment out tools with [lmfit](https://lmfit.github.io/lmfit-py/) we can solve the *inverse* problem: to find the best of parameters that explain a given observed frequency distribution of photon numbers.
+* If we augment out tools with [lmfit](https://lmfit.github.io/lmfit-py/) we can solve the *inverse* problem: to find the best set of parameters that explain a given observed frequency distribution of photon numbers.
 
-Finally, we used [pytest](https://docs.pytest.org/en/latest/) for testing.
+Finally, we use [pytest](https://docs.pytest.org/en/latest/) for testing.
 
 All of these prerequisites can be installed via `pip`:
 
 ```bash
-pip install numpy scipy numba lmfit pytest
+pip install numpy scipy thewalrus lmfit pytest
 ```
 
-## Authors
+## Contributors
 
-
+Nicolas Quesada
 
 ## License
 
