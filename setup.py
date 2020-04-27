@@ -17,6 +17,15 @@ r"""Basic setup module"""
 from setuptools import setup
 
 
+requirements = [
+    "numpy",
+    "scipy",
+    "numba",
+    "lmfit",
+    "pytest",
+    "thewalrus",
+]
+
 setup(
     name="sqtom",
     version="0.1",
@@ -26,4 +35,5 @@ setup(
     author_email="nicolas@xanadu.ai",
     license="Apache",
     packages=["sqtom"],
+    install_requires=requirements,
 )
