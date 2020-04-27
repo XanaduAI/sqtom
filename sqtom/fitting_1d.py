@@ -15,7 +15,7 @@
 Degenerate squeezer inverse-problem solver
 ==========================================
 This module solves the *inverse* problem of given a photon number distribution find the best
-of parameters describing different the quantum states in a single beam producing it.
+of parameters describing the different quantum states in a single beam producing it.
 
 The ideas behind this module borrow heavily on the work of Burenkok et al. in
 
@@ -33,12 +33,12 @@ from sqtom.forward_solver import degenerate_pmf
 def marginal_calcs_1d(pd_data, as_dict=True):
     """ Given a one dimensional array of probabilities it calculates the mean photon number
     and the g2.
+
     Args:
         pd_data (array): probability mass function of the photon events
         as_dict (boolean): whether to return the results as a dictionary
     Returns:
         dict or array: values of the mean photons number the corresponding g2.
-
     """
 
     intn = pd_data.shape[0]
@@ -46,13 +46,14 @@ def marginal_calcs_1d(pd_data, as_dict=True):
     nmean = pd_data @ n
     nmean2 = pd_data @ n ** 2
     g2 = (nmean2 - nmean) / nmean ** 2
-    if as_dict is True:
+    if as_dict:
         return {"n": nmean, "g2": g2}
     return np.array([nmean, g2])
 
 
 def threshold_1d(ps, nmax):
-    """ Thresholds a probability distribution by assigning events with nmax photons or more to the nmax bin.
+    """ Thresholds a probability distribution by assigning events with nmax
+    photons or more to the nmax bin.
 
     Args:
         ps (array): Probability distribution
@@ -61,8 +62,9 @@ def threshold_1d(ps, nmax):
         (array): Thresholded probability distribuion.
     """
     thr = nmax - 1
-    ps[thr] = np.sum(ps[thr:])
-    return ps[:nmax]
+    local_ps = np.copy(ps)
+    local_ps[thr] = np.sum(local_ps[thr:])
+    return local_ps[:nmax]
 
 
 def fit_1d(
