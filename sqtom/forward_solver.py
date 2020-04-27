@@ -44,11 +44,10 @@ def twinbeam_pmf(params, cutoff=50):
         Poisson noise mean photons numbers, "eta_s", "eta_i" for the transmission of the twin_beams,
         "n_modes" describing the number of twin_beams a sq_0,..,sq_n where n = n_modes giving the means
         photon numbers of the different twin_beams.
-        ""
-        cutoff (int): Fock cutoff.
+        cutoff (int): Fock cutoff
 
     Returns:
-        (array): `n\times n` matrix representing the joint probability mass function
+        array: `n\times n` matrix representing the joint probability mass function
     """
     if "noise_s" in params:
         noise_s = float(params["noise_s"])
@@ -96,16 +95,18 @@ def twinbeam_pmf(params, cutoff=50):
 
 def degenerate_pmf(params, cutoff=50):
     """Generates the total photon number distribution of single mode squeezed states with different squeezing values.
+
     After each of them undergoes loss by amount eta
+
     Args:
         params (dict): Parameter dictionary, with possible keys "noise", for the
         Poisson noise mean photons number, "eta"  for the transmission of the degenerate squeezer,
         "n_modes" describing the number of squeezed states sq_0,..,sq_n where n = n_modes giving the mean
         photon numbers of the different degenerate squeezer.
-        ""
-        cutoff (int): Fock cutoff.
+        cutoff (int): Fock cutoff
+
     Returns:
-        (array[int]): total photon number distribution
+        array[int]: total photon number distribution
     """
     if "noise" in params:
         noise = float(params["noise"])

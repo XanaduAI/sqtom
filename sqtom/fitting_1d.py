@@ -37,6 +37,7 @@ def marginal_calcs_1d(pd_data, as_dict=True):
     Args:
         pd_data (array): probability mass function of the photon events
         as_dict (boolean): whether to return the results as a dictionary
+
     Returns:
         dict or array: values of the mean photons number the corresponding g2.
     """
@@ -56,11 +57,11 @@ def threshold_1d(ps, nmax):
     photons or more to the nmax bin.
 
     Args:
-        ps (array): Probability distribution
+        ps (array): probability distribution
         nmax (int): threshold value
 
     Returns:
-        (array): Thresholded probability distribuion.
+        array: thresholded probability distribuion
     """
     thr = nmax - 1
     local_ps = np.copy(ps)
@@ -83,7 +84,7 @@ def fit_1d(
         cutoff (int): internal cutoff
 
     Returns:
-        Object containing the optimized parameter and several goodness-of-fit statistics
+        Object: object containing the optimized parameter and several goodness-of-fit statistics
     """
     if do_not_vary is None:
         do_not_vary = []

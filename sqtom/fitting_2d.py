@@ -39,7 +39,7 @@ def two_schmidt_mode_guess(jpd_data):
         jpd_data (array): rectangular array with the probability mass functions of the photon events
 
     Returns:
-        dict: Dictionary containing a set of "reasonable" model parameters.
+        dict: dictionary containing a set of "reasonable" model parameters
     """
     res = marginal_calcs_2d(jpd_data)
     g2avg = np.max([0.5 * (res["g2_s"] + res["g2_i"]), 1.5])
@@ -69,8 +69,9 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
     Args:
         jpd_data (array): probability mass function of the photon events
         as_dict (boolean): whether to return the results as a dictionary
+
     Returns:
-        dict or array: values of the mean photons number for signal and idlers, their corresponding g2 and their g11.
+        dict or array: values of the mean photons number for signal and idlers, their corresponding g2 and their g11
     """
     inta, intb = jpd_data.shape
     na = np.arange(inta)
@@ -101,7 +102,7 @@ def gen_hist_2d(beam1, beam2):
         beam2 (array): 1D events array containing the raw click events of second beam
 
     Returns:
-        (array): probability mass function of the click patterns in vals.
+        array: probability mass function of the click patterns in vals
     """
     nx = np.max(beam1)
     ny = np.max(beam2)
@@ -125,7 +126,7 @@ def fit_2d(
         cutoff (int): internal cutoff
 
     Returns:
-        Object containing the optimized parameter and several goodness-of-fit statistics
+        Object: object containing the optimized parameter and several goodness-of-fit statistics
     """
     pars_model = Parameters()
     n_modes = guess["n_modes"]
