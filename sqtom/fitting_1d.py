@@ -58,6 +58,7 @@ def threshold_1d(ps, nmax):
     Args:
         ps (array): Probability distribution
         nmax (int): threshold value
+
     Returns:
         (array): Thresholded probability distribuion.
     """
@@ -108,7 +109,8 @@ def fit_1d(
 
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
-            return threshold_1d(degenerate_pmf(params, cutoff=cutoff), ndim) - pd_data
+            degenerate_pmf = degenerate_pmf(params, cutoff=cutoff)
+            return threshold_1d(degenerate_pmf, ndim) - pd_data
 
     else:
 

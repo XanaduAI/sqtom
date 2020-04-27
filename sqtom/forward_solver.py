@@ -33,9 +33,10 @@ from scipy.signal import convolve2d
 from thewalrus.quantum import loss_mat, gen_single_mode_dist
 
 def twinbeam_pmf(params, cutoff=50):
-    r"""  Contructs the joint probability mass function of a conjugate source for a total
+    r"""Contructs the joint probability mass function of a conjugate source for a total
     of n photons in both signal idler and for an overall loss after generation
     characterized by the transmissions etas and etai.
+
     The source is described by either conjugate (correlated) and uncorrelated parts.
 
     Args:
@@ -45,9 +46,9 @@ def twinbeam_pmf(params, cutoff=50):
         photon numbers of the different twin_beams.
         ""
         cutoff (int): Fock cutoff.
+
     Returns:
         (array): `n\times n` matrix representing the joint probability mass function
-
     """
     if "noise_s" in params:
         noise_s = float(params["noise_s"])
