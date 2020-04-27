@@ -68,7 +68,7 @@ def threshold_1d(ps, nmax):
 
 
 def fit_1d(
-    pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50
+    pd_data, guess, do_not_vary=None, method="leastsq", threshold=False, cutoff=50
 ):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
@@ -83,6 +83,9 @@ def fit_1d(
     Returns:
         Object containing the optimized parameter and several goodness-of-fit statistics
     """
+    if do_not_vary is None:
+        do_not_vary = []
+
     pars_model = Parameters()
     n_modes = guess["n_modes"]
     pars_model.add("n_modes", value=n_modes, vary=False)
