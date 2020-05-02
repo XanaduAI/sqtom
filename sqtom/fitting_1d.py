@@ -66,7 +66,7 @@ def threshold_1d(ps, nmax):
 
 
 def fit_1d(
-    pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50
+    pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50, sq_label='sq_', noise_label='noise'
 ):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
@@ -77,6 +77,7 @@ def fit_1d(
         do_not_vary (list): list of variables that should be held constant during optimization
         threshold (boolean or int): whether to threshold the photon probbailitites at value threshold
         cutoff (int): internal cutoff
+        sq_label (string): string label for the squeezing parameters
 
     Returns:
         Object containing the optimized parameter and several goodness-of-fit statistics
@@ -86,29 +87,29 @@ def fit_1d(
     pars_model.add("n_modes", value=n_modes, vary=False)
     # Add the squeezing parameters
     for i in range(n_modes):
-        pars_model.add("sq_" + str(i), value=guess["sq_" + str(i)], min=0.0)
+        pars_model.add(sq_label + str(i), value=guess["sq_" + str(i)], min=0.0)
 
     if "eta" in do_not_vary:
         pars_model.add("eta", value=guess["eta"], vary=False)
     else:
         pars_model.add("eta", value=guess["eta"], min=0.0, max=1.0)
 
-    if "noise" in do_not_vary:
-        pars_model.add("noise", value=guess["noise"], vary=False)
+    if noise_label in do_not_vary:
+        pars_model.add(noise_label, value=guess[noise_label], vary=False)
     else:
-        pars_model.add("noise", value=guess["noise"], min=0.0)
+        pars_model.add(noise_label, value=guess[noise_label], min=0.0)
 
     if threshold:
 
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
-            return threshold_1d(degenerate_pmf(params, cutoff=cutoff), ndim) - pd_data
+            return threshold_1d(degenerate_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label), ndim) - pd_data
 
     else:
 
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
-            return degenerate_pmf(params, cutoff=cutoff)[:ndim] - pd_data
+            return degenerate_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label)[:ndim] - pd_data
 
     minner_model = Minimizer(model_1d, pars_model, fcn_args=([pd_data]))
     return minner_model.minimize(method=method)

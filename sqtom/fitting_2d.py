@@ -29,7 +29,7 @@ from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import twinbeam_pmf
 
 
-def two_schmidt_mode_guess(jpd_data):
+def two_schmidt_mode_guess(jpd_data, sq_label='sq_', noise_label='noise'):
     """Given a two mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt occupations
     and dark counts parameters.
     This model is sensible only if the average g2 of signal and idler is above 1.5.
@@ -51,10 +51,10 @@ def two_schmidt_mode_guess(jpd_data):
     return {
         "eta_s": etas,
         "eta_i": etai,
-        "sq_0": n0,
-        "sq_1": n1,
-        "noise_s": noise * etas,
-        "noise_i": noise * etai,
+        sq_label + "0": n0,
+        sq_label + "1": n1,
+        noise_label + "_s": noise * etas,
+        noise_label + "_i": noise * etai,
         "n_modes": 2,
     }
 
@@ -108,7 +108,7 @@ def gen_hist_2d(beam1, beam2):
 
 
 def fit_2d(
-    pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50
+    pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50, sq_label='sq_', noise_label='noise'
 ):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
@@ -118,6 +118,9 @@ def fit_2d(
         method (string): method to be used by the optimizer
         do_not_vary (list): list of variables that should be held constant during optimization
         cutoff (int): internal cutoff
+        sq_label (string): label for the squeezing parameters.
+        noise_label (string): label for the noise parameters.
+
     Returns:
         Object containing the optimized parameter and several goodness-of-fit statistics
     """
@@ -125,7 +128,7 @@ def fit_2d(
     n_modes = guess["n_modes"]
     pars_model.add("n_modes", value=n_modes, vary=False)
     for i in range(n_modes):
-        pars_model.add("sq_" + str(i), value=guess["sq_" + str(i)], min=0.0)
+        pars_model.add(sq_label + str(i), value=guess["sq_" + str(i)], min=0.0)
 
     if "eta_s" in do_not_vary:
         pars_model.add("eta_s", value=guess["eta_s"], vary=False)
@@ -137,19 +140,19 @@ def fit_2d(
     else:
         pars_model.add("eta_i", value=guess["eta_i"], min=0.0, max=1.0)
 
-    if "noise_s" in do_not_vary:
-        pars_model.add("noise_s", value=guess["noise_s"], vary=False)
+    if noise_label + "_s" in do_not_vary:
+        pars_model.add(noise_label + "_s", value=guess[noise_label + "_s"], vary=False)
     else:
-        pars_model.add("noise_s", value=guess["noise_s"], min=0.0)
+        pars_model.add(noise_label + "_s", value=guess[noise_label + "_s"], min=0.0)
 
-    if "noise_i" in do_not_vary:
-        pars_model.add("noise_i", value=guess["noise_i"], vary=False)
+    if noise_label + "_i" in do_not_vary:
+        pars_model.add(noise_label + "_i", value=guess[noise_label + "_i"], vary=False)
     else:
-        pars_model.add("noise_i", value=guess["noise_i"], min=0.0)
+        pars_model.add(noise_label + "_i", value=guess[noise_label + "_i"], min=0.0)
 
     def model_2d(params, jpd_data):
         (dim_s, dim_i) = pd_data.shape
-        return twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i] - pd_data
+        return twinbeam_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label)[:dim_s, :dim_i] - pd_data
 
     minner_model = Minimizer(model_2d, pars_model, fcn_args=([pd_data]))
     result_model = minner_model.minimize(method=method)
