@@ -78,6 +78,7 @@ def fit_1d(
         threshold (boolean or int): whether to threshold the photon probbailitites at value threshold
         cutoff (int): internal cutoff
         sq_label (string): string label for the squeezing parameters
+        noise_label (string): label for the noise parameters.
 
     Returns:
         Object containing the optimized parameter and several goodness-of-fit statistics

@@ -36,6 +36,8 @@ def two_schmidt_mode_guess(jpd_data, sq_label='sq_', noise_label='noise'):
 
     Args:
         jpd_data (array): rectangular array with the probability mass functions of the photon events
+        sq_label (string): label for the squeezing parameters.
+        noise_label (string): label for the noise parameters.
 
     Returns:
         dict: Dictionary containing a set of "reasonable" model parameters.
