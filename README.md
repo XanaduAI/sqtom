@@ -1,5 +1,5 @@
 # sqtom
-## Squeezed state tomography
+## Squeezed state tomography in Python
 
 This repository implements the mode tomography ideas presented in
 
