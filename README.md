@@ -5,7 +5,7 @@ This repository implements the mode tomography ideas presented in
 
 *"Full statistical mode reconstruction of a light field via a photon-number-resolved measurement"* by Burenkov. et al. [Phys. Rev. A 95, 053806 (2017)
 ](https://journals.aps.org/pra/abstract/10.1103/PhysRevA.95.053806) and in Burenkov et al. in [J Res Natl Inst Stan 122 (2017)](https://doi.org/10.6028/jres.122.030).
-"
+
 
 for twin beam light and extends it to degenerate squeezed light. By leveraging `lmfit` we can also provide a number of uncertainty estimates, and moreover provide routines for thresholding photon-number measurements and useful hueristics to provide initial guesses for the solutions of the problem. 
 
