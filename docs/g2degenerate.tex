@@ -1,0 +1,105 @@
+%\documentclass[9pt,letterpaper,aps,pra,notitlepage,twocolumn]{revtex4-1}
+\documentclass[aps,twocolumn,reprint,nofootinbib]{revtex4-1}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\newcommand{\pr}[1]{| #1 \rangle \langle #1|}
+\newcommand{\ket}[1]{| #1 \rangle}
+\newcommand{\bra}[1]{\langle #1 |}
+\newcommand{\braket}[1]{\langle #1 \rangle}
+\newcommand{\ketq}[1]{| #1 _q\rangle }
+\newcommand{\braq}[1]{\langle #1 _q |}
+\newcommand{\hc}{\text{H.c.}}
+\newcommand{\cc}{\text{c.c.}}
+\newcommand{\h}{\hat}
+\newcommand{\eq}[1]{\begin{align}#1\end{align}}
+\newcommand{\nn}{\nonumber}
+\renewcommand{\a}{\hat a}
+\newcommand{\ad}{\hat a^\dagger}
+\newcommand{\Ai}{\text{Ai}}
+\newcommand{\Aip}{\text{Ai}'}
+
+\begin{document}
+	
+	\title{The $g^{(2)}$ of noisy squeezed light}
+	\author{Nicol\'as Quesada}
+	\affiliation{Xanadu, Toronto, Canada}
+	\date{\today}
+	\maketitle
+
+\maketitle
+
+We are interested in calculating the second order coherence function at zero delay 
+\eq{\label{eq:def}
+g^{(2)} = \frac{\braket{N^2-N}}{\braket{N}^2},
+}
+for a beam that contains a number of single mode squeezed vacuum states and a ``dark mode'' with Poisson number statistics.
+We use the index 0 for the dark mode and Latin indices for the squeezed modes starting at 1. Finally, we use Greek indices for the dark mode together with the squeezed modes thus,
+\eq{
+N = n_0+\sum_{i=1} n_i = \sum_{\mu=0} n_\mu.	
+}
+Since the dark mode has Poisson statistics then
+\eq{
+\braket{n_0} &= \bar{n}_0, \quad \braket{n_0^2} = \bar{n}_0^2+\bar{n}_0.
+}
+%Similarly for the squeezed modes
+%\eq{
+%\braket{n_i} &= \bar{n}_i \\
+%\braket{n_i^2}&= 3	\bar{n}_i^2+2\bar{n}_i.
+%}
+%For each mode we can associate a destruction operator $a_\mu$ such that $n_\mu = a^\dagger_\mu a_\mu$.
+We can then write the denominator in Eq.~\eqref{eq:def} as
+\eq{
+\braket{N^2-N} &= \braket{\sum_{\mu} n_\mu \sum_{\nu} n_\nu}	- \braket{\sum_{\mu }n_\mu} \\
+&=\braket{n_0^2+2n_0 \sum_i n_i +\sum_{i}\sum_j n_i n_j} - \bar{n}_0 - \bar{M},
+}
+where we introduced $\bar{M} = \sum_i \bar{n}_i = \sum_i \braket{n}_i$ as the total mean photon number of the squeezed modes, in terms of which we can write
+\eq{
+\braket{N} = \bar{N} =  \bar{n}_0	+ \bar{M}
+}
+
+We also assume that the dark mode is uncorrelated with the squeezed modes allowing us to write
+\eq{
+\braket{N^2-N} &=	\bar{n}_0^2 + 2 \bar{n}_0 \bar{M} + \left\langle \sum_{i}\sum_j n_i n_j \right\rangle - \bar{M},
+}
+where in the last line we used the fact that $\braket{n_0^2} -\bar{n}_0 = \bar{n}_0^2$.
+We can finally write the last equation as
+\eq{
+\braket{N^2-N} = \bar{M}^2 \left( \underbrace{\frac{\braket{\sum_{i}\sum_j n_i n_j} - \bar{M}}{\bar{M}^2}}_{\equiv g^{(2)}_{\text{noiseless}}} + 2 \frac{\bar{n}_0}{\bar M} +\left(\frac{\bar{n}_0}{\bar M} \right)^2 \right).
+}
+In the last equation we introduced $g^{(2)}_{\text{noiseless}}$ as the second order coherence function if there were no noise photons. 
+
+
+One can also easily write the denominator of Eq.~\eqref{eq:def} as
+\eq{
+\braket{N}^2 = \bar{M}^2 \left(1+ 2 \frac{\bar{n}_0}{\bar M} +\left(\frac{\bar{n}_0}{\bar M} \right)^2\right).
+}
+With this last piece we finally write
+\eq{
+g^{(2)} = \frac{  g^{(2)}_{\text{noiseless}} + 2 \frac{\bar{n}_0}{\bar M} +\left(\frac{\bar{n}_0}{\bar M} \right)^2}{1+ 2 \frac{\bar{n}_0}{\bar M} +\left(\frac{\bar{n}_0}{\bar M} \right)^2}.	
+}
+
+The last equation can expanded in the limit where $n_0/M \ll 1$ to obtain
+\eq{
+g^{(2)} = g^{(2)}_{\text{noiseless}} -2 \left(g^{(2)}_{\text{noiseless}} -1\right) \frac{n_0}{M}
+}
+One can now specialize the last equation to two cases. The first one is where on the modes of interest come from a degenerate squeezer
+\eq{
+	g^{(2)}_{\text{noiseless}} = 1+ \frac{1}{\bar{M}}+\frac{2}{K}.
+}
+where 
+\eq{
+K = \frac{\left( \sum_i \bar{n}_i\right)^2}{\sum_i \bar{n}_i^2} \geq 1.		
+}
+where $K$ is the Schmidt number.
+The second case is when one has one half of a twin beam for which one has (cf. Christ et al.)
+\eq{
+g^{(2)}_{\text{noiseless}} = 1+\frac{1}{K}.
+}
+Note that in general the amount of noise in the ``signal'' and ``idler'' arm of a twin beam can be different leading to different values for the $g^{(2)}$. In the limit where the noise photon number is much smaller than the twin beam photon number one can write the following equality
+\eq{
+g^{(2)}_s - g^{(2)}_i = -2 (g^{(2)}_\text{noiseless} -1) \frac{n_s - n_i}{M}
+}
+
+
+
+\end{document}
