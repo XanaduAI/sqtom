@@ -110,8 +110,8 @@ def fit_1d(
 
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
-            degenerate_pmf = degenerate_pmf(params, cutoff=cutoff)
-            return threshold_1d(degenerate_pmf, ndim) - pd_data
+            dpmf = degenerate_pmf(params, cutoff=cutoff)
+            return threshold_1d(dpmf, ndim) - pd_data
 
     else:
 
