@@ -61,7 +61,7 @@ def threshold_1d(ps, nmax):
         nmax (int): threshold value
 
     Returns:
-        array: thresholded probability distribuion
+        array: thresholded probability distribution
     """
     thr = nmax - 1
     local_ps = np.copy(ps)
