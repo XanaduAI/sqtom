@@ -61,7 +61,7 @@ def two_schmidt_mode_guess(jpd_data):
 
 
 def marginal_calcs_2d(jpd_data, as_dict=True):
-    """Given a two dimensional array of probabilities it calculates their first
+    """Given a two dimensional array of probabilities it calculates
     the mean photon numbers, their g2's and g11.
 
     It returns these values as a dictionary or as an array.
