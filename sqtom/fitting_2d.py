@@ -14,10 +14,10 @@
 """
 Twin-beam squeezer inverse-problem solver
 =========================================
-This module solves the *inverse* problem of given a joint photon number distribution find the best
+This module solves the *inverse* problem: given a joint photon number distribution find the best
 parameters describing the different quantum states in a twin-beam producing it.
 
-The ideas behind this module borrow are re-implementation of the ideas in
+The ideas behind this module borrow heavily on the work of Burenkok et al. in
 
 Full statistical mode reconstruction of a light field via a photon-number-resolved measurement
 I. A. Burenkov, A. K. Sharma, T. Gerrits, G. Harder, T. J. Bartley, C. Silberhorn, E. A. Goldschmidt, and S. V. Polyakov
