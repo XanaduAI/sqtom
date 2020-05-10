@@ -32,30 +32,29 @@ from scipy.stats import poisson, geom
 from scipy.signal import convolve2d
 from thewalrus.quantum import loss_mat, gen_single_mode_dist
 
-def twinbeam_pmf(params, cutoff=50):
-    r"""Contructs the joint probability mass function of a conjugate source for a total
-    of n photons in both signal idler and for an overall loss after generation
-    characterized by the transmissions etas and etai.
 
-    The source is described by either conjugate (correlated) and uncorrelated parts.
+def twinbeam_pmf(params, cutoff=50, sq_label='sq_', noise_label='noise'):
+    r"""Contructs the joint probability mass function of a conjugate source.
 
     Args:
         params (dict): Parameter dictionary, with possible keys "noise_s", "noise_i" for the
-        Poisson noise mean photons numbers, "eta_s", "eta_i" for the transmission of the twin_beams,
-        "n_modes" describing the number of twin_beams a sq_0,..,sq_n where n = n_modes giving the means
-        photon numbers of the different twin_beams.
-        cutoff (int): Fock cutoff
+        Poisson noise mean photon numbers, "eta_s", "eta_i" for the transmission of the twin_beams,
+        "n_modes" describing the number of twin_beams and the parameters sq_0,..,sq_n where
+        n = n_modes giving the mean photon numbers of the different twin_beams.
+        cutoff (int): Fock cutoff.
+        sq_label (string): label for the squeezing parameters.
+        noise_label (string): label for the noise parameters.
 
     Returns:
-        array: `n\times n` matrix representing the joint probability mass function
+        (array): `n\times n` matrix representing the joint probability mass function
     """
-    if "noise_s" in params:
-        noise_s = float(params["noise_s"])
+    if noise_label + "_s" in params:
+        noise_s = float(params[noise_label + "_s"])
     else:
         noise_s = 0.0
 
-    if "noise_i" in params:
-        noise_i = float(params["noise_i"])
+    if noise_label + "_i" in params:
+        noise_i = float(params[noise_label + "_i"])
     else:
         noise_i = 0.0
 
@@ -77,7 +76,7 @@ def twinbeam_pmf(params, cutoff=50):
     # Then convolve with the twin beam distributions if there are any.
     if "n_modes" in params:
         n_modes = int(params["n_modes"])
-        sq = [float(params["sq_" + str(i)]) for i in range(n_modes)]
+        sq = [float(params[sq_label + str(i)]) for i in range(n_modes)]
         loss_mat_ns = loss_mat(eta_s, cutoff).T
         loss_mat_ni = loss_mat(eta_i, cutoff)
         twin_pmf = np.zeros([cutoff, cutoff])
@@ -93,23 +92,23 @@ def twinbeam_pmf(params, cutoff=50):
     return joint_pmf
 
 
-def degenerate_pmf(params, cutoff=50):
-    """Generates the total photon number distribution of single mode squeezed states with different squeezing values.
-
-    After each of them undergoes loss by amount eta
+def degenerate_pmf(params, cutoff=50, sq_label='sq_', noise_label='noise'):
+    r"""Contructs the probability mass function of a degenerate squeezing source.
 
     Args:
-        params (dict): Parameter dictionary, with possible keys "noise", for the
-        Poisson noise mean photons number, "eta"  for the transmission of the degenerate squeezer,
-        "n_modes" describing the number of squeezed states sq_0,..,sq_n where n = n_modes giving the mean
-        photon numbers of the different degenerate squeezer.
-        cutoff (int): Fock cutoff
+        params (dict): Parameter dictionary, with possible keys "noise" for the
+        Poisson noise mean photon number, "eta", for the loss transmission, "n_modes" 
+        describing the number of squeezed modes and the parameters sq_0,..,sq_n where
+        n = n_modes giving the mean photon numbers of the different squeezers.
+        cutoff (int): Fock cutoff.
+        sq_label (string): label for the squeezing parameters.
+        noise_label (string): label for the noise parameters.
 
     Returns:
-        array[int]: total photon number distribution
+        (array): `n\times n` matrix representing the joint probability mass function
     """
-    if "noise" in params:
-        noise = float(params["noise"])
+    if noise_label in params:
+        noise = float(params[noise_label])
     else:
         noise = 0.0
 
@@ -122,7 +121,7 @@ def degenerate_pmf(params, cutoff=50):
 
     if "n_modes" in params:
         n_modes = int(params["n_modes"])
-        sq = [float(params["sq_" + str(i)]) for i in range(n_modes)]
+        sq = [float(params[sq_label + str(i)]) for i in range(n_modes)]
         mat = loss_mat(float(eta), cutoff)
         for n_val in sq:
             ps = np.convolve(

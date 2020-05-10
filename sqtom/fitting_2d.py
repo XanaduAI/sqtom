@@ -14,10 +14,10 @@
 """
 Twin-beam squeezer inverse-problem solver
 =========================================
-This module solves the *inverse* problem of given a joint photon number distribution find the best
+This module solves the *inverse* problem: given a joint photon number distribution find the best
 parameters describing the different quantum states in a twin-beam producing it.
 
-The ideas behind this module borrow are re-implementation of the ideas in
+The ideas behind this module borrow heavily on the work of Burenkok et al. in
 
 Full statistical mode reconstruction of a light field via a photon-number-resolved measurement
 I. A. Burenkov, A. K. Sharma, T. Gerrits, G. Harder, T. J. Bartley, C. Silberhorn, E. A. Goldschmidt, and S. V. Polyakov
@@ -29,7 +29,7 @@ from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import twinbeam_pmf
 
 
-def two_schmidt_mode_guess(jpd_data):
+def two_schmidt_mode_guess(jpd_data, sq_label='sq_', noise_label='noise'):
     """Given a two mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt occupations
     and dark counts parameters.
 
@@ -37,6 +37,8 @@ def two_schmidt_mode_guess(jpd_data):
 
     Args:
         jpd_data (array): rectangular array with the probability mass functions of the photon events
+        sq_label (string): label for the squeezing parameters.
+        noise_label (string): label for the noise parameters.
 
     Returns:
         dict: dictionary containing a set of "reasonable" model parameters
@@ -52,10 +54,10 @@ def two_schmidt_mode_guess(jpd_data):
     return {
         "eta_s": etas,
         "eta_i": etai,
-        "sq_0": n0,
-        "sq_1": n1,
-        "noise_s": noise * etas,
-        "noise_i": noise * etai,
+        sq_label + "0": n0,
+        sq_label + "1": n1,
+        noise_label + "_s": noise * etas,
+        noise_label + "_i": noise * etai,
         "n_modes": 2,
     }
 
@@ -113,10 +115,9 @@ def gen_hist_2d(beam1, beam2):
 
 
 def fit_2d(
-    pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50
+    pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50, sq_label='sq_', noise_label='noise'
 ):
-    """Takes as input the name of the model to fit to and the jpd of the data
-    and returns the fitted model.
+    """Returns a model fit from the parameter guess and the data
 
     Args:
         pd_data (array): one dimensional array of the probability distribution of the data
@@ -124,6 +125,8 @@ def fit_2d(
         method (string): method to be used by the optimizer
         do_not_vary (list): list of variables that should be held constant during optimization
         cutoff (int): internal cutoff
+        sq_label (string): label for the squeezing parameters.
+        noise_label (string): label for the noise parameters.
 
     Returns:
         Object: object containing the optimized parameter and several goodness-of-fit statistics
@@ -132,7 +135,7 @@ def fit_2d(
     n_modes = guess["n_modes"]
     pars_model.add("n_modes", value=n_modes, vary=False)
     for i in range(n_modes):
-        pars_model.add("sq_" + str(i), value=guess["sq_" + str(i)], min=0.0)
+        pars_model.add(sq_label + str(i), value=guess["sq_" + str(i)], min=0.0)
 
     if "eta_s" in do_not_vary:
         pars_model.add("eta_s", value=guess["eta_s"], vary=False)
@@ -144,20 +147,21 @@ def fit_2d(
     else:
         pars_model.add("eta_i", value=guess["eta_i"], min=0.0, max=1.0)
 
-    if "noise_s" in do_not_vary:
-        pars_model.add("noise_s", value=guess["noise_s"], vary=False)
+    if noise_label + "_s" in do_not_vary:
+        pars_model.add(noise_label + "_s", value=guess[noise_label + "_s"], vary=False)
     else:
-        pars_model.add("noise_s", value=guess["noise_s"], min=0.0)
+        pars_model.add(noise_label + "_s", value=guess[noise_label + "_s"], min=0.0)
 
-    if "noise_i" in do_not_vary:
-        pars_model.add("noise_i", value=guess["noise_i"], vary=False)
+    if noise_label + "_i" in do_not_vary:
+        pars_model.add(noise_label + "_i", value=guess[noise_label + "_i"], vary=False)
     else:
-        pars_model.add("noise_i", value=guess["noise_i"], min=0.0)
+        pars_model.add(noise_label + "_i", value=guess[noise_label + "_i"], min=0.0)
 
     def model_2d(params, jpd_data):
         (dim_s, dim_i) = pd_data.shape
-        relevant_joint_pmf = twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i]
-        return relevant_joint_pmf - pd_data
+        joint_pmf = twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i]
+        return joint_pmf - pd_data
+
 
     minner_model = Minimizer(model_2d, pars_model, fcn_args=([pd_data]))
     result_model = minner_model.minimize(method=method)
