@@ -1,4 +1,4 @@
-# Copyright 2019 Xanadu Quantum Technologies Inc.
+# Copyright 2019-2020 Xanadu Quantum Technologies Inc.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import pytest
 @pytest.mark.parametrize("eta_s", [0.1, 1.0])
 @pytest.mark.parametrize("eta_i", [0.1, 1.0])
 def test_twin_correct_stats(sq_0, sq_1, noise_s, noise_i, eta_s, eta_i):
-    """Test that dark counts are correctly included by calculatin expected g2s and mean photon numbers
+    """Test that dark counts are correctly included by calculating expected g2s and mean photon numbers
     """
     cutoff = 40
     params = {
