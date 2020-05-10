@@ -1,4 +1,4 @@
-# Copyright 2019 Xanadu Quantum Technologies Inc.
+# Copyright 2019-2020 Xanadu Quantum Technologies Inc.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 Twin-beam squeezer inverse-problem solver
 =========================================
 This module solves the *inverse* problem of given a joint photon number distribution find the best
-parameters describing different the quantum states in a twin-beam producing it.
+parameters describing the different quantum states in a twin-beam producing it.
 
 The ideas behind this module borrow are re-implementation of the ideas in
 
@@ -32,6 +32,7 @@ from sqtom.forward_solver import twinbeam_pmf
 def two_schmidt_mode_guess(jpd_data, sq_label='sq_', noise_label='noise'):
     """Given a two mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt occupations
     and dark counts parameters.
+
     This model is sensible only if the average g2 of signal and idler is above 1.5.
 
     Args:
@@ -40,7 +41,7 @@ def two_schmidt_mode_guess(jpd_data, sq_label='sq_', noise_label='noise'):
         noise_label (string): label for the noise parameters.
 
     Returns:
-        dict: Dictionary containing a set of "reasonable" model parameters.
+        dict: dictionary containing a set of "reasonable" model parameters
     """
     res = marginal_calcs_2d(jpd_data)
     g2avg = np.max([0.5 * (res["g2_s"] + res["g2_i"]), 1.5])
@@ -62,15 +63,17 @@ def two_schmidt_mode_guess(jpd_data, sq_label='sq_', noise_label='noise'):
 
 
 def marginal_calcs_2d(jpd_data, as_dict=True):
-    """ Given a two dimensional array of probabilities it calculates the first
+    """Given a two dimensional array of probabilities it calculates
     the mean photon numbers, their g2's and g11.
-    It returns these values as a dictionary or as an array
+
+    It returns these values as a dictionary or as an array.
 
     Args:
         jpd_data (array): probability mass function of the photon events
         as_dict (boolean): whether to return the results as a dictionary
+
     Returns:
-        dict or array: values of the mean photons number for signal and idlers, their corresponding g2 and their g11.
+        dict or array: values of the mean photons number for signal and idlers, their corresponding g2 and their g11
     """
     inta, intb = jpd_data.shape
     na = np.arange(inta)
@@ -95,11 +98,13 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
 
 def gen_hist_2d(beam1, beam2):
     """Calculate the joint probability mass function of events.
+
     Args:
         beam1 (array): 1D events array containing the raw click events of first beam
         beam2 (array): 1D events array containing the raw click events of second beam
+
     Returns:
-        (array): probability mass function of the click patterns in vals.
+        array: probability mass function of the click patterns in vals
     """
     nx = np.max(beam1)
     ny = np.max(beam2)
@@ -112,8 +117,8 @@ def gen_hist_2d(beam1, beam2):
 def fit_2d(
     pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50, sq_label='sq_', noise_label='noise'
 ):
-    """Takes as input the name of the model to fit to and the jpd of the data
-    and returns the fitted model.
+    """Returns a model fit from the parameter guess and the data
+
     Args:
         pd_data (array): one dimensional array of the probability distribution of the data
         guess (dict): dictionary with the guesses for the different parameters
@@ -124,7 +129,7 @@ def fit_2d(
         noise_label (string): label for the noise parameters.
 
     Returns:
-        Object containing the optimized parameter and several goodness-of-fit statistics
+        Object: object containing the optimized parameter and several goodness-of-fit statistics
     """
     pars_model = Parameters()
     n_modes = guess["n_modes"]
@@ -154,7 +159,9 @@ def fit_2d(
 
     def model_2d(params, jpd_data):
         (dim_s, dim_i) = pd_data.shape
-        return twinbeam_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label)[:dim_s, :dim_i] - pd_data
+        joint_pmf = twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i]
+        return joint_pmf - pd_data
+
 
     minner_model = Minimizer(model_2d, pars_model, fcn_args=([pd_data]))
     result_model = minner_model.minimize(method=method)

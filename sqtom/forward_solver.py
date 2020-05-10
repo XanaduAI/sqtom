@@ -1,4 +1,4 @@
-# Copyright 2019 Xanadu Quantum Technologies Inc.
+# Copyright 2019-2020 Xanadu Quantum Technologies Inc.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,24 +32,21 @@ from scipy.stats import poisson, geom
 from scipy.signal import convolve2d
 from thewalrus.quantum import loss_mat, gen_single_mode_dist
 
+
 def twinbeam_pmf(params, cutoff=50, sq_label='sq_', noise_label='noise'):
-    r"""  Contructs the joint probability mass function of a conjugate source for a total
-    of n photons in both signal idler and for an overall loss after generation
-    characterized by the transmissions etas and etai.
-    The source is described by either conjugate (correlated) and uncorrelated parts.
+    r"""Contructs the joint probability mass function of a conjugate source.
 
     Args:
         params (dict): Parameter dictionary, with possible keys "noise_s", "noise_i" for the
-        Poisson noise mean photons numbers, "eta_s", "eta_i" for the transmission of the twin_beams,
-        "n_modes" describing the number of twin_beams a sq_0,..,sq_n where n = n_modes giving the means
-        photon numbers of the different twin_beams.
+        Poisson noise mean photon numbers, "eta_s", "eta_i" for the transmission of the twin_beams,
+        "n_modes" describing the number of twin_beams and the parameters sq_0,..,sq_n where
+        n = n_modes giving the mean photon numbers of the different twin_beams.
         cutoff (int): Fock cutoff.
         sq_label (string): label for the squeezing parameters.
         noise_label (string): label for the noise parameters.
 
     Returns:
         (array): `n\times n` matrix representing the joint probability mass function
-
     """
     if noise_label + "_s" in params:
         noise_s = float(params[noise_label + "_s"])
@@ -96,19 +93,19 @@ def twinbeam_pmf(params, cutoff=50, sq_label='sq_', noise_label='noise'):
 
 
 def degenerate_pmf(params, cutoff=50, sq_label='sq_', noise_label='noise'):
-    """Generates the total photon number distribution of single mode squeezed states with different squeezing values.
-    After each of them undergoes loss by amount eta
+    r"""Contructs the probability mass function of a degenerate squeezing source.
+
     Args:
-        params (dict): Parameter dictionary, with possible keys "noise", for the
-        Poisson noise mean photons number, "eta"  for the transmission of the degenerate squeezer,
-        "n_modes" describing the number of squeezed states sq_0,..,sq_n where n = n_modes giving the mean
-        photon numbers of the different degenerate squeezer.
+        params (dict): Parameter dictionary, with possible keys "noise" for the
+        Poisson noise mean photon number, "eta", for the loss transmission, "n_modes" 
+        describing the number of squeezed modes and the parameters sq_0,..,sq_n where
+        n = n_modes giving the mean photon numbers of the different squeezers.
         cutoff (int): Fock cutoff.
         sq_label (string): label for the squeezing parameters.
         noise_label (string): label for the noise parameters.
 
     Returns:
-        (array[int]): total photon number distribution
+        (array): `n\times n` matrix representing the joint probability mass function
     """
     if noise_label in params:
         noise = float(params[noise_label])

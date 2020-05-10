@@ -1,4 +1,4 @@
-# Copyright 2019 Xanadu Quantum Technologies Inc.
+# Copyright 2019-2020 Xanadu Quantum Technologies Inc.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,10 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env python3
 r"""Basic setup module"""
 from setuptools import setup
 
+
+requirements = [
+    "numpy",
+    "scipy",
+    "numba",
+    "lmfit",
+    "pytest",
+    "thewalrus",
+]
 
 setup(
     name="sqtom",
@@ -26,4 +34,5 @@ setup(
     author_email="nicolas@xanadu.ai",
     license="Apache",
     packages=["sqtom"],
+    install_requires=requirements,
 )

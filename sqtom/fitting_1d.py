@@ -1,4 +1,4 @@
-# Copyright 2019 Xanadu Quantum Technologies Inc.
+# Copyright 2019-2020 Xanadu Quantum Technologies Inc.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 Degenerate squeezer inverse-problem solver
 ==========================================
 This module solves the *inverse* problem of given a photon number distribution find the best
-of parameters describing different the quantum states in a single beam producing it.
+of parameters describing the different quantum states in a single beam producing it.
 
 The ideas behind this module borrow heavily on the work of Burenkok et al. in
 
@@ -33,12 +33,13 @@ from sqtom.forward_solver import degenerate_pmf
 def marginal_calcs_1d(pd_data, as_dict=True):
     """ Given a one dimensional array of probabilities it calculates the mean photon number
     and the g2.
+
     Args:
         pd_data (array): probability mass function of the photon events
         as_dict (boolean): whether to return the results as a dictionary
+
     Returns:
         dict or array: values of the mean photons number the corresponding g2.
-
     """
 
     intn = pd_data.shape[0]
@@ -46,30 +47,34 @@ def marginal_calcs_1d(pd_data, as_dict=True):
     nmean = pd_data @ n
     nmean2 = pd_data @ n ** 2
     g2 = (nmean2 - nmean) / nmean ** 2
-    if as_dict is True:
+    if as_dict:
         return {"n": nmean, "g2": g2}
     return np.array([nmean, g2])
 
 
 def threshold_1d(ps, nmax):
-    """ Thresholds a probability distribution by assigning events with nmax photons or more to the nmax bin.
+    """ Thresholds a probability distribution by assigning events with nmax
+    photons or more to the nmax bin.
 
     Args:
-        ps (array): Probability distribution
+        ps (array): probability distribution
         nmax (int): threshold value
+
     Returns:
-        (array): Thresholded probability distribuion.
+        array: thresholded probability distribution
     """
     thr = nmax - 1
-    ps[thr] = np.sum(ps[thr:])
-    return ps[:nmax]
+    local_ps = np.copy(ps)
+    local_ps[thr] = np.sum(local_ps[thr:])
+    return local_ps[:nmax]
 
 
 def fit_1d(
-    pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50, sq_label='sq_', noise_label='noise'
+    pd_data, guess, do_not_vary=None, method="leastsq", threshold=False, cutoff=50, sq_label='sq_', noise_label='noise'
 ):
     """Takes as input the name of the model to fit to and the jpd of the data
     and returns the fitted model.
+
     Args:
         pd_data (array): one dimensional array of the probability distribution of the data
         guess (dict): dictionary with the guesses for the different parameters
@@ -81,8 +86,11 @@ def fit_1d(
         noise_label (string): label for the noise parameters.
 
     Returns:
-        Object containing the optimized parameter and several goodness-of-fit statistics
+        Object: object containing the optimized parameter and several goodness-of-fit statistics
     """
+    if do_not_vary is None:
+        do_not_vary = []
+
     pars_model = Parameters()
     n_modes = guess["n_modes"]
     pars_model.add("n_modes", value=n_modes, vary=False)
@@ -101,13 +109,11 @@ def fit_1d(
         pars_model.add(noise_label, value=guess[noise_label], min=0.0)
 
     if threshold:
-
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
-            return threshold_1d(degenerate_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label), ndim) - pd_data
-
+            dpmf = degenerate_pmf(params, cutoff=cutoff)
+            return threshold_1d(dpmf, ndim) - pd_data
     else:
-
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
             return degenerate_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label)[:ndim] - pd_data
