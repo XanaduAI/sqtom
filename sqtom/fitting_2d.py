@@ -104,7 +104,7 @@ def gen_hist_2d(beam1, beam2):
         beam2 (array): 1D events array containing the raw click events of second beam
 
     Returns:
-        array: probability mass function of the click patterns in vals
+        array: probability mass function of the click patterns for the two beams
     """
     nx = np.max(beam1)
     ny = np.max(beam2)
