@@ -24,7 +24,7 @@ jobs:
           pip install -r requirements.txt
           pip install wheel pytest pytest-cov --upgrade
           python setup.py bdist_wheel
-          pip install dist/sqtom*.whl
+          pip install dist/sqtom-0.2.0.dev0-py3-none-any.whl
       - name: Run tests
         run: python -m pytest sqtom/tests --cov=sqtom -p no:warnings --tb=native
       - name: Upload coverage to Codecov
