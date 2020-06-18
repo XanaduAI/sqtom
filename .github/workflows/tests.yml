@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: [3.8]
     steps:
       - uses: actions/checkout@v2
@@ -24,7 +24,7 @@ jobs:
           pip install -r requirements.txt
           pip install wheel pytest pytest-cov --upgrade
           python setup.py bdist_wheel
-          pip install dist/sqtom-0.2.0.dev0-py3-none-any.whl
+          pip install dist/*.whl
       - name: Run tests
         run: python -m pytest sqtom/tests --cov=sqtom --cov-report=term-missing -p no:warnings --tb=native
       - name: Upload coverage to Codecov
