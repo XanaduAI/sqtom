@@ -16,6 +16,10 @@ r"""Basic setup module"""
 from setuptools import setup
 
 
+with open("sqtom/_version.py") as f:
+    version = f.readlines()[-1].split()[-1].strip("\"'")
+
+
 requirements = [
     "numpy",
     "scipy",
@@ -27,7 +31,7 @@ requirements = [
 
 setup(
     name="sqtom",
-    version="0.1",
+    version=version,
     description="squeezing mode tomography",
     url="https://github.com/XanaduAI/sqtom",
     author="Xanadu",
