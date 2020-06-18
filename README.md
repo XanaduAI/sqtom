@@ -1,13 +1,9 @@
 # sqtom - Squeezed state tomography in Python
 
 ![GitHub Workflow Status (master)](https://img.shields.io/github/workflow/status/XanaduAI/sqtom/Tests/master?style=flat-square)
-
 ![Codecov coverage](https://img.shields.io/codecov/c/github/xanaduai/sqtom/master.svg?style=flat-square)
-
 ![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/XanaduAI/sqtom/master?style=flat-square)
-
 ![PyPI](https://img.shields.io/pypi/v/sqtom.svg?style=flat-square)
-
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/sqtom.svg?style=flat-square)
 
 This repository implements the mode tomography ideas presented in
