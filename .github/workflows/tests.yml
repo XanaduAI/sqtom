@@ -28,4 +28,4 @@ jobs:
       - name: Run tests
         run: python -m pytest sqtom/tests --cov=sqtom -p no:warnings --tb=native
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v1.0.7
