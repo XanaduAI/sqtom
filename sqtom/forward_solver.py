@@ -33,7 +33,7 @@ from scipy.signal import convolve2d
 from thewalrus.quantum import loss_mat, gen_single_mode_dist
 
 
-def twinbeam_pmf(params, cutoff=50, sq_label='sq_', noise_label='noise'):
+def twinbeam_pmf(params, cutoff=50, sq_label="sq_", noise_label="noise"):
     r"""Contructs the joint probability mass function of a conjugate source.
 
     Args:
@@ -83,8 +83,7 @@ def twinbeam_pmf(params, cutoff=50, sq_label='sq_', noise_label='noise'):
         twin_pmf[0, 0] = 1.0
         for nmean in sq:
             twin_pmf = convolve2d(
-                twin_pmf,
-                np.diag(geom.pmf(np.arange(1, cutoff + 1), 1 / (1.0 + nmean),)),
+                twin_pmf, np.diag(geom.pmf(np.arange(1, cutoff + 1), 1 / (1.0 + nmean),)),
             )[0:cutoff, 0:cutoff]
         twin_pmf = loss_mat_ns @ twin_pmf @ loss_mat_ni
         joint_pmf = convolve2d(twin_pmf, joint_pmf)[:cutoff, :cutoff]
@@ -92,7 +91,7 @@ def twinbeam_pmf(params, cutoff=50, sq_label='sq_', noise_label='noise'):
     return joint_pmf
 
 
-def degenerate_pmf(params, cutoff=50, sq_label='sq_', noise_label='noise'):
+def degenerate_pmf(params, cutoff=50, sq_label="sq_", noise_label="noise"):
     r"""Contructs the probability mass function of a degenerate squeezing source.
 
     Args:
@@ -125,8 +124,7 @@ def degenerate_pmf(params, cutoff=50, sq_label='sq_', noise_label='noise'):
         mat = loss_mat(float(eta), cutoff)
         for n_val in sq:
             ps = np.convolve(
-                ps,
-                gen_single_mode_dist(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff) @ mat,
+                ps, gen_single_mode_dist(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff) @ mat,
             )[:cutoff]
 
     return ps[:cutoff]

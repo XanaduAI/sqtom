@@ -57,9 +57,7 @@ def test_two_schmidt_mode_guess_exact(eta_s, eta_i, sq_0, sq_1):
     """Test that one can invert correctly when there are two Schmidt modes
     and no dark counts.
     """
-    pmf = twinbeam_pmf(
-        {"sq_0": sq_0, "sq_1": sq_1, "n_modes": 2, "eta_s": eta_s, "eta_i": eta_i}
-    )
+    pmf = twinbeam_pmf({"sq_0": sq_0, "sq_1": sq_1, "n_modes": 2, "eta_s": eta_s, "eta_i": eta_i})
     guess = two_schmidt_mode_guess(pmf)
     assert np.allclose(eta_s, guess["eta_s"], atol=1.0e-2)
     assert np.allclose(eta_i, guess["eta_i"], atol=1.0e-2)
@@ -96,6 +94,5 @@ def test_marginal_calcs_2d():
     nmean = 1.0
     ps = twinbeam_pmf({"n_modes": 1.0, "sq_0": nmean})
     assert np.allclose(
-        marginal_calcs_2d(ps, as_dict=False),
-        np.array([nmean, nmean, 2 + 1 / nmean, 2, 2]),
+        marginal_calcs_2d(ps, as_dict=False), np.array([nmean, nmean, 2 + 1 / nmean, 2, 2]),
     )
