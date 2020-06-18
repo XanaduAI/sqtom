@@ -26,7 +26,7 @@ jobs:
           python setup.py bdist_wheel
           pip install dist/sqtom*.whl
       - name: Run tests
-        run: python -m pytest tests --cov=sqtom -p no:warnings --tb=native
+        run: python -m pytest sqtom/tests --cov=sqtom -p no:warnings --tb=native
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
