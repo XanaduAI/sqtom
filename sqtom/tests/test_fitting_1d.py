@@ -19,7 +19,7 @@ from sqtom.forward_solver import degenerate_pmf
 from sqtom.fitting_1d import fit_1d, threshold_1d, marginal_calcs_1d
 
 
-@pytest.mark.parametrize("do_not_vary", ["eta", "noise", []])
+@pytest.mark.parametrize("do_not_vary", ["eta", "noise", None])
 @pytest.mark.parametrize("n_modes", [1, 2, 3])
 @pytest.mark.parametrize("threshold", [False, 10])
 def test_exact_model_1d(n_modes, threshold, do_not_vary):
@@ -40,7 +40,7 @@ def test_exact_model_1d(n_modes, threshold, do_not_vary):
 
 
 def test_marginal_calcs_1d():
-    """Tests that matginal_calcs_1d returns the correct values as an array"""
+    """Tests that marginal_calcs_1d returns the correct values as an array"""
     nmean = 1.0
-    ps = degenerate_pmf({"n_modes": 1.0, "sq_0": nmean})
+    ps = degenerate_pmf({"n_modes": 1, "sq_0": nmean})
     assert np.allclose(marginal_calcs_1d(ps, as_dict=False), np.array([nmean, 3 + 1 / nmean]))
