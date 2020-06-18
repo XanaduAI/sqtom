@@ -43,6 +43,4 @@ def test_marginal_calcs_1d():
     """Tests that matginal_calcs_1d returns the correct values as an array"""
     nmean = 1.0
     ps = degenerate_pmf({"n_modes": 1.0, "sq_0": nmean})
-    assert np.allclose(
-        marginal_calcs_1d(ps, as_dict=False), np.array([nmean, 3 + 1 / nmean])
-    )
+    assert np.allclose(marginal_calcs_1d(ps, as_dict=False), np.array([nmean, 3 + 1 / nmean]))

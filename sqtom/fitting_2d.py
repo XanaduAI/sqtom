@@ -29,7 +29,7 @@ from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import twinbeam_pmf
 
 
-def two_schmidt_mode_guess(jpd_data, sq_label='sq_', noise_label='noise'):
+def two_schmidt_mode_guess(jpd_data, sq_label="sq_", noise_label="noise"):
     """Given a two mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt occupations
     and dark counts parameters.
 
@@ -115,7 +115,7 @@ def gen_hist_2d(beam1, beam2):
 
 
 def fit_2d(
-    pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50, sq_label='sq_', noise_label='noise'
+    pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50, sq_label="sq_", noise_label="noise"
 ):
     """Returns a model fit from the parameter guess and the data
 
@@ -161,7 +161,6 @@ def fit_2d(
         (dim_s, dim_i) = pd_data.shape
         joint_pmf = twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i]
         return joint_pmf - pd_data
-
 
     minner_model = Minimizer(model_2d, pars_model, fcn_args=([pd_data]))
     result_model = minner_model.minimize(method=method)
