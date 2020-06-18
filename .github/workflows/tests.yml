@@ -1,4 +1,5 @@
 name: Tests
+on:
   push:
     branches:
       - master
@@ -26,3 +27,11 @@ jobs:
       - name: Run tests
         run: |
           python -m pytest tests --cov=sqtom -p no:warnings --tb=native
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        env_vars: OS,PYTHON
+        name: codecov-umbrella
+        fail_ci_if_error: true
