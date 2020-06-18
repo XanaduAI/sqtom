@@ -35,4 +35,6 @@ setup(
     license="Apache",
     packages=["sqtom"],
     install_requires=requirements,
+    long_description=open("README.md", encoding="utf-8").read(),
+    long_description_content_type='text/markdown',
 )
