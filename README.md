@@ -32,7 +32,7 @@ Finally, we use [pytest](https://docs.pytest.org/en/latest/) for testing.
 All of these prerequisites can be installed via `pip`:
 
 ```bash
-pip install pytest
+pip install sqtom
 ```
 
 ## Contributors
