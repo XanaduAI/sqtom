@@ -29,9 +29,3 @@ jobs:
         run: python -m pytest sqtom/tests --cov=sqtom -p no:warnings --tb=native
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-        with:
-          file: ./.coverage
-          flags: unittests
-          env_vars: OS,PYTHON
-          name: codecov-umbrella
-          fail_ci_if_error: true
