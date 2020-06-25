@@ -52,7 +52,7 @@ All of these prerequisites can be installed via `pip`:
 pip install sqtom
 ```
 
-## Contributors
+## Author
 
 Nicolas Quesada
 
