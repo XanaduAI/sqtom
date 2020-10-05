@@ -30,8 +30,8 @@ Phys. Rev. A 95, 053806 (2017)
 import numpy as np
 from scipy.stats import poisson, geom
 from scipy.signal import convolve2d
-from thewalrus.quantum import loss_mat, _squeezed_state_distribution
-
+from thewalrus.quantum import loss_mat
+from thewalrus.quantum.photon_number_distributions import _squeezed_state_distribution
 def twinbeam_pmf(params, cutoff=50):
     r"""  Contructs the joint probability mass function of a conjugate source for a total
     of n photons in both signal idler and for an overall loss after generation
