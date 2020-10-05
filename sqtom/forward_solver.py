@@ -30,7 +30,7 @@ Phys. Rev. A 95, 053806 (2017)
 import numpy as np
 from scipy.stats import poisson, geom
 from scipy.signal import convolve2d
-from thewalrus.quantum import loss_mat, gen_single_mode_dist
+from thewalrus.quantum import loss_mat, _squeezed_state_distribution
 
 def twinbeam_pmf(params, cutoff=50):
     r"""  Contructs the joint probability mass function of a conjugate source for a total
@@ -125,7 +125,7 @@ def degenerate_pmf(params, cutoff=50):
         for n_val in sq:
             ps = np.convolve(
                 ps,
-                gen_single_mode_dist(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff) @ mat,
+                _squeezed_state_distribution(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff) @ mat,
             )[:cutoff]
 
     return ps[:cutoff]
