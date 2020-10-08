@@ -200,7 +200,7 @@ def fit_2d(
             (dim_s, dim_i) = pd_data.shape
             joint_pmf = twinbeam_pmf(params, cutoff=cutoff)
             return threshold_2d(joint_pmf, dim_s, dim_i) - threshold_2d(
-                pd_data, dim_s, dim_i
+                jpd_data, dim_s, dim_i
             )
 
     else:
@@ -208,7 +208,7 @@ def fit_2d(
         def model_2d(params, jpd_data):
             (dim_s, dim_i) = pd_data.shape
             joint_pmf = twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i]
-            return joint_pmf - pd_data
+            return joint_pmf - jpd_data
 
     minner_model = Minimizer(model_2d, pars_model, fcn_args=([pd_data]))
     result_model = minner_model.minimize(method=method)
