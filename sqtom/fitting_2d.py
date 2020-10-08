@@ -135,7 +135,7 @@ def threshold_2d(ps, nmax, mmax):
 
 
 def fit_2d(
-    pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50, sq_label="sq_", noise_label="noise"
+    pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50, sq_label="sq_", noise_label="noise"
 ):
     """Returns a model fit from the parameter guess and the data
 
@@ -143,6 +143,7 @@ def fit_2d(
         pd_data (array): one dimensional array of the probability distribution of the data
         guess (dict): dictionary with the guesses for the different parameters
         method (string): method to be used by the optimizer
+        thresholf (boolean or list): threshold photon number for the signal and idlers
         do_not_vary (list): list of variables that should be held constant during optimization
         cutoff (int): internal cutoff
         sq_label (string): label for the squeezing parameters.
@@ -177,10 +178,16 @@ def fit_2d(
     else:
         pars_model.add(noise_label + "_i", value=guess[noise_label + "_i"], min=0.0)
 
-    def model_2d(params, jpd_data):
-        (dim_s, dim_i) = pd_data.shape
-        joint_pmf = twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i]
-        return joint_pmf - pd_data
+    if threshold:
+         def model_2d(params, jpd_data):
+            (dim_s, dim_i) = pd_data.shape
+            joint_pmf = twinbeam_pmf(params, cutoff=cutoff)
+            return threshold_2d(joint_pmf, dim_s, dim_i) - threshold_2d(pd_data, dim_s, dim_i)
+    else:
+        def model_2d(params, jpd_data):
+            (dim_s, dim_i) = pd_data.shape
+            joint_pmf = twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i]
+            return joint_pmf - pd_data
 
     minner_model = Minimizer(model_2d, pars_model, fcn_args=([pd_data]))
     result_model = minner_model.minimize(method=method)
