@@ -21,6 +21,7 @@ from sqtom.fitting_2d import (
     gen_hist_2d,
     two_schmidt_mode_guess,
     marginal_calcs_2d,
+    threshold_2d,
 )
 
 
@@ -70,7 +71,8 @@ def test_two_schmidt_mode_guess_exact(eta_s, eta_i, sq_0, sq_1):
 
 @pytest.mark.parametrize("do_not_vary", ["eta_s", "noise_s", "eta_i", "noise_i", []])
 @pytest.mark.parametrize("n_modes", [1, 2, 3])
-def test_exact_model_2d(n_modes, do_not_vary):
+@pytest.mark.parametrize("threshold", [False, 5])
+def test_exact_model_2d(n_modes, do_not_vary, threshold):
     """Test that the fitting is correct when the guess is exactly the correct answer"""
     sq_n = 0.7 * (0.5 ** np.arange(n_modes))
     noise_s = 0.1
@@ -83,9 +85,11 @@ def test_exact_model_2d(n_modes, do_not_vary):
     params["eta_i"] = eta_i
     params["noise_s"] = noise_s
     params["noise_i"] = noise_i
-
-    probs = twinbeam_pmf(params)
-    fit = fit_2d(probs, params, do_not_vary=do_not_vary)
+    if threshold:
+        probs = threshold_2d(twinbeam_pmf(params), threshold, threshold)
+    else:
+        probs = twinbeam_pmf(params)
+    fit = fit_2d(probs, params, do_not_vary=do_not_vary, threshold=threshold)
     assert np.allclose(fit.chisqr, 0.0)
 
 

@@ -31,7 +31,7 @@ def test_exact_model_1d(n_modes, threshold, do_not_vary):
     params["n_modes"] = n_modes
     params["eta"] = eta
     params["noise"] = noise
-    if threshold is not False:
+    if threshold:
         probs = threshold_1d(degenerate_pmf(params), threshold)
     else:
         probs = degenerate_pmf(params)
