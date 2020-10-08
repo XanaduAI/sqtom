@@ -85,6 +85,14 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
     g2s = (ns2 - ns) / ns ** 2
     g2i = (ni2 - ni) / ni ** 2
     g11 = (na @ jpd_data @ nb) / (ns * ni)
+    nrf = np.sum(
+        [[((i - j) ** 2) * jpd_data[i, j] for i in range(inta)] for j in range(intb)]
+    )
+    nrf -= (
+        np.sum([[(i - j) * jpd_data[i, j] for i in range(inta)] for j in range(intb)])
+        ** 2
+    )
+    nrf /= ns + ni
     if as_dict is True:
         return {
             "n_s": ns,
@@ -92,8 +100,9 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
             "g11": g11,
             "g2_s": g2s,
             "g2_i": g2i,
+            "nrf": nrf,
         }
-    return np.array([ns, ni, g11, g2s, g2i])
+    return np.array([ns, ni, g11, g2s, g2i, nrf])
 
 
 def gen_hist_2d(beam1, beam2):
@@ -112,6 +121,7 @@ def gen_hist_2d(beam1, beam2):
     yedges = np.arange(ny + 2)
     mass_fun, _, _ = np.histogram2d(beam1, beam2, bins=(xedges, yedges), normed=True)
     return mass_fun
+
 
 def threshold_2d(ps, nmax, mmax):
     """ Thresholds a 2D probability distribution by assigning events with more than nmax (mmax) photons
@@ -133,9 +143,15 @@ def threshold_2d(ps, nmax, mmax):
     return probs
 
 
-
 def fit_2d(
-    pd_data, guess, do_not_vary=[], method="leastsq", threshold=False, cutoff=50, sq_label="sq_", noise_label="noise"
+    pd_data,
+    guess,
+    do_not_vary=[],
+    method="leastsq",
+    threshold=False,
+    cutoff=50,
+    sq_label="sq_",
+    noise_label="noise",
 ):
     """Returns a model fit from the parameter guess and the data
 
@@ -179,11 +195,16 @@ def fit_2d(
         pars_model.add(noise_label + "_i", value=guess[noise_label + "_i"], min=0.0)
 
     if threshold:
-         def model_2d(params, jpd_data):
+
+        def model_2d(params, jpd_data):
             (dim_s, dim_i) = pd_data.shape
             joint_pmf = twinbeam_pmf(params, cutoff=cutoff)
-            return threshold_2d(joint_pmf, dim_s, dim_i) - threshold_2d(pd_data, dim_s, dim_i)
+            return threshold_2d(joint_pmf, dim_s, dim_i) - threshold_2d(
+                pd_data, dim_s, dim_i
+            )
+
     else:
+
         def model_2d(params, jpd_data):
             (dim_s, dim_i) = pd_data.shape
             joint_pmf = twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i]

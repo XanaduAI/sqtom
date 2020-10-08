@@ -98,5 +98,5 @@ def test_marginal_calcs_2d():
     nmean = 1.0
     ps = twinbeam_pmf({"n_modes": 1.0, "sq_0": nmean})
     assert np.allclose(
-        marginal_calcs_2d(ps, as_dict=False), np.array([nmean, nmean, 2 + 1 / nmean, 2, 2]),
+        marginal_calcs_2d(ps, as_dict=False), np.array([nmean, nmean, 2 + 1 / nmean, 2, 2, 0]),
     )

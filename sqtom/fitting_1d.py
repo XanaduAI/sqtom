@@ -127,9 +127,9 @@ def fit_1d(
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
             return (
-                degenerate_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label)[
-                    :ndim
-                ]
+                degenerate_pmf(
+                    params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label
+                )[:ndim]
                 - pd_data
             )
 
