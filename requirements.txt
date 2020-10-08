@@ -3,4 +3,5 @@ scipy>=1.2.1
 numba>=0.43.1
 lmfit>=1.0.0
 pytest>=5.2.4
-thewalrus>=0.12
+git+https://github.com/XanaduAI/thewalrus.git
+
