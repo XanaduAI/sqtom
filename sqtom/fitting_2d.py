@@ -113,6 +113,26 @@ def gen_hist_2d(beam1, beam2):
     mass_fun, _, _ = np.histogram2d(beam1, beam2, bins=(xedges, yedges), normed=True)
     return mass_fun
 
+def threshold_2d(ps, nmax, mmax):
+    """ Thresholds a 2D probability distribution by assigning events with more than nmax (mmax) photons
+    in the first (second) axis to the nmax (mmax) bin.
+
+    Args:
+        ps (array): probability distribution
+        nmax (int): threshold value
+
+    Returns:
+        array: thresholded probability distribution
+    """
+    probs = np.copy(ps[:nmax, :mmax])
+    for i in range(mmax - 1):
+        probs[nmax - 1, i] += np.sum(ps[nmax:, i])
+    for i in range(nmax - 1):
+        probs[i, mmax - 1] += np.sum(ps[i, mmax:])
+    probs[nmax - 1, mmax - 1] = np.sum(ps[nmax - 1 :, mmax - 1 :])
+    return probs
+
+
 
 def fit_2d(
     pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50, sq_label="sq_", noise_label="noise"
