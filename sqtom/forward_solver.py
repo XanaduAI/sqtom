@@ -35,7 +35,7 @@ from thewalrus.quantum.photon_number_distributions import _squeezed_state_distri
 
 
 def twinbeam_pmf(params, cutoff=50, sq_label="sq_", noise_label="noise"):
-    r"""  Contructs the joint probability mass function of a conjugate source for a total
+    r"""Contructs the joint probability mass function of a conjugate source for a total
     of n photons in both signal idler and for an overall loss after generation
     characterized by the transmissions etas and etai.
     The source is described by either conjugate (correlated) and uncorrelated parts.
@@ -88,7 +88,12 @@ def twinbeam_pmf(params, cutoff=50, sq_label="sq_", noise_label="noise"):
         for nmean in sq:
             twin_pmf = convolve2d(
                 twin_pmf,
-                np.diag(geom.pmf(np.arange(1, cutoff + 1), 1 / (1.0 + nmean),)),
+                np.diag(
+                    geom.pmf(
+                        np.arange(1, cutoff + 1),
+                        1 / (1.0 + nmean),
+                    )
+                ),
             )[0:cutoff, 0:cutoff]
         twin_pmf = loss_mat_ns @ twin_pmf @ loss_mat_ni
         joint_pmf = convolve2d(twin_pmf, joint_pmf)[:cutoff, :cutoff]
@@ -101,7 +106,7 @@ def degenerate_pmf(params, cutoff=50, sq_label="sq_", noise_label="noise"):
 
     Args:
         params (dict): Parameter dictionary, with possible keys "noise" for the
-        Poisson noise mean photon number, "eta", for the loss transmission, "n_modes" 
+        Poisson noise mean photon number, "eta", for the loss transmission, "n_modes"
         describing the number of squeezed modes and the parameters sq_0,..,sq_n where
         n = n_modes giving the mean photon numbers of the different squeezers.
         cutoff (int): Fock cutoff.
@@ -130,8 +135,7 @@ def degenerate_pmf(params, cutoff=50, sq_label="sq_", noise_label="noise"):
         for n_val in sq:
             ps = np.convolve(
                 ps,
-                _squeezed_state_distribution(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff)
-                @ mat,
+                _squeezed_state_distribution(np.arcsinh(np.sqrt(n_val)), cutoff=cutoff) @ mat,
             )[:cutoff]
 
     return ps[:cutoff]

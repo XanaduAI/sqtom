@@ -85,13 +85,8 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
     g2s = (ns2 - ns) / ns ** 2
     g2i = (ni2 - ni) / ni ** 2
     g11 = (na @ jpd_data @ nb) / (ns * ni)
-    nrf = np.sum(
-        [[((i - j) ** 2) * jpd_data[i, j] for i in range(inta)] for j in range(intb)]
-    )
-    nrf -= (
-        np.sum([[(i - j) * jpd_data[i, j] for i in range(inta)] for j in range(intb)])
-        ** 2
-    )
+    nrf = np.sum([[((i - j) ** 2) * jpd_data[i, j] for i in range(inta)] for j in range(intb)])
+    nrf -= np.sum([[(i - j) * jpd_data[i, j] for i in range(inta)] for j in range(intb)]) ** 2
     nrf /= ns + ni
     if as_dict is True:
         return {
@@ -124,7 +119,7 @@ def gen_hist_2d(beam1, beam2):
 
 
 def threshold_2d(ps, nmax, mmax):
-    """ Thresholds a 2D probability distribution by assigning events with more than nmax (mmax) photons
+    """Thresholds a 2D probability distribution by assigning events with more than nmax (mmax) photons
     in the first (second) axis to the nmax (mmax) bin.
 
     Args:
@@ -199,9 +194,7 @@ def fit_2d(
         def model_2d(params, jpd_data):
             (dim_s, dim_i) = pd_data.shape
             joint_pmf = twinbeam_pmf(params, cutoff=cutoff)
-            return threshold_2d(joint_pmf, dim_s, dim_i) - threshold_2d(
-                jpd_data, dim_s, dim_i
-            )
+            return threshold_2d(joint_pmf, dim_s, dim_i) - threshold_2d(jpd_data, dim_s, dim_i)
 
     else:
 

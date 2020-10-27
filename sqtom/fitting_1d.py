@@ -31,7 +31,7 @@ from sqtom.forward_solver import degenerate_pmf
 
 
 def marginal_calcs_1d(pd_data, as_dict=True):
-    """ Given a one dimensional array of probabilities it calculates the mean photon number
+    """Given a one dimensional array of probabilities it calculates the mean photon number
     and the g2.
 
     Args:
@@ -53,7 +53,7 @@ def marginal_calcs_1d(pd_data, as_dict=True):
 
 
 def threshold_1d(ps, nmax):
-    """ Thresholds a probability distribution by assigning events with nmax
+    """Thresholds a probability distribution by assigning events with nmax
     photons or more to the nmax bin.
 
     Args:
@@ -127,9 +127,9 @@ def fit_1d(
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
             return (
-                degenerate_pmf(
-                    params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label
-                )[:ndim]
+                degenerate_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label)[
+                    :ndim
+                ]
                 - pd_data
             )
 
