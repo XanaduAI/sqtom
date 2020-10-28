@@ -73,7 +73,8 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
         as_dict (boolean): whether to return the results as a dictionary
 
     Returns:
-        dict or array: values of the mean photons number for signal and idlers, their corresponding g2 and their g11
+        dict or array: values of the mean photons number for signal and idlers,
+            their corresponding g2, their g11 and their noise reduction factor (nrf).
     """
     inta, intb = jpd_data.shape
     na = np.arange(inta)
@@ -124,7 +125,8 @@ def threshold_2d(ps, nmax, mmax):
 
     Args:
         ps (array): probability distribution
-        nmax (int): threshold value
+        nmax (int): threshold for first axis
+        mmax (int): threshold for second axis
 
     Returns:
         array: thresholded probability distribution
@@ -141,7 +143,7 @@ def threshold_2d(ps, nmax, mmax):
 def fit_2d(
     pd_data,
     guess,
-    do_not_vary=[],
+    do_not_vary=None,
     method="leastsq",
     threshold=False,
     cutoff=50,
@@ -154,7 +156,7 @@ def fit_2d(
         pd_data (array): one dimensional array of the probability distribution of the data
         guess (dict): dictionary with the guesses for the different parameters
         method (string): method to be used by the optimizer
-        thresholf (boolean or list): threshold photon number for the signal and idlers
+        threshold (boolean or list): threshold photon number for the signal and idlers
         do_not_vary (list): list of variables that should be held constant during optimization
         cutoff (int): internal cutoff
         sq_label (string): label for the squeezing parameters.
@@ -163,6 +165,8 @@ def fit_2d(
     Returns:
         Object: object containing the optimized parameter and several goodness-of-fit statistics
     """
+    if do_not_vary is None:
+        do_not_vary = []
     pars_model = Parameters()
     n_modes = guess["n_modes"]
     pars_model.add("n_modes", value=n_modes, vary=False)

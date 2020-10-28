@@ -120,7 +120,7 @@ def fit_1d(
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
             dpmf = degenerate_pmf(params, cutoff=cutoff)
-            return threshold_1d(dpmf, ndim) - threshold_1d(pd_data, ndim)
+            return threshold_1d(dpmf, ndim) - pd_data
 
     else:
 
