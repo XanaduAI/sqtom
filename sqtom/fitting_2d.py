@@ -73,7 +73,8 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
         as_dict (boolean): whether to return the results as a dictionary
 
     Returns:
-        dict or array: values of the mean photons number for signal and idlers, their corresponding g2 and their g11
+        dict or array: values of the mean photons number for signal and idlers,
+            their corresponding g2, their g11 and their noise reduction factor (nrf).
     """
     inta, intb = jpd_data.shape
     na = np.arange(inta)
@@ -85,6 +86,9 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
     g2s = (ns2 - ns) / ns ** 2
     g2i = (ni2 - ni) / ni ** 2
     g11 = (na @ jpd_data @ nb) / (ns * ni)
+    nrf = np.sum([[((i - j) ** 2) * jpd_data[i, j] for i in range(inta)] for j in range(intb)])
+    nrf -= np.sum([[(i - j) * jpd_data[i, j] for i in range(inta)] for j in range(intb)]) ** 2
+    nrf /= ns + ni
     if as_dict is True:
         return {
             "n_s": ns,
@@ -92,8 +96,9 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
             "g11": g11,
             "g2_s": g2s,
             "g2_i": g2i,
+            "nrf": nrf,
         }
-    return np.array([ns, ni, g11, g2s, g2i])
+    return np.array([ns, ni, g11, g2s, g2i, nrf])
 
 
 def gen_hist_2d(beam1, beam2):
@@ -114,8 +119,36 @@ def gen_hist_2d(beam1, beam2):
     return mass_fun
 
 
+def threshold_2d(ps, nmax, mmax):
+    """Thresholds a 2D probability distribution by assigning events with more than nmax (mmax) photons
+    in the first (second) axis to the nmax (mmax) bin.
+
+    Args:
+        ps (array): probability distribution
+        nmax (int): threshold for first axis
+        mmax (int): threshold for second axis
+
+    Returns:
+        array: thresholded probability distribution
+    """
+    probs = np.copy(ps[:nmax, :mmax])
+    for i in range(mmax - 1):
+        probs[nmax - 1, i] += np.sum(ps[nmax:, i])
+    for i in range(nmax - 1):
+        probs[i, mmax - 1] += np.sum(ps[i, mmax:])
+    probs[nmax - 1, mmax - 1] = np.sum(ps[nmax - 1 :, mmax - 1 :])
+    return probs
+
+
 def fit_2d(
-    pd_data, guess, do_not_vary=[], method="leastsq", cutoff=50, sq_label="sq_", noise_label="noise"
+    pd_data,
+    guess,
+    do_not_vary=None,
+    method="leastsq",
+    threshold=False,
+    cutoff=50,
+    sq_label="sq_",
+    noise_label="noise",
 ):
     """Returns a model fit from the parameter guess and the data
 
@@ -123,6 +156,7 @@ def fit_2d(
         pd_data (array): one dimensional array of the probability distribution of the data
         guess (dict): dictionary with the guesses for the different parameters
         method (string): method to be used by the optimizer
+        threshold (boolean or list): threshold photon number for the signal and idlers
         do_not_vary (list): list of variables that should be held constant during optimization
         cutoff (int): internal cutoff
         sq_label (string): label for the squeezing parameters.
@@ -131,6 +165,8 @@ def fit_2d(
     Returns:
         Object: object containing the optimized parameter and several goodness-of-fit statistics
     """
+    if do_not_vary is None:
+        do_not_vary = []
     pars_model = Parameters()
     n_modes = guess["n_modes"]
     pars_model.add("n_modes", value=n_modes, vary=False)
@@ -157,10 +193,19 @@ def fit_2d(
     else:
         pars_model.add(noise_label + "_i", value=guess[noise_label + "_i"], min=0.0)
 
-    def model_2d(params, jpd_data):
-        (dim_s, dim_i) = pd_data.shape
-        joint_pmf = twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i]
-        return joint_pmf - pd_data
+    if threshold:
+
+        def model_2d(params, jpd_data):
+            (dim_s, dim_i) = pd_data.shape
+            joint_pmf = twinbeam_pmf(params, cutoff=cutoff)
+            return threshold_2d(joint_pmf, dim_s, dim_i) - threshold_2d(jpd_data, dim_s, dim_i)
+
+    else:
+
+        def model_2d(params, jpd_data):
+            (dim_s, dim_i) = pd_data.shape
+            joint_pmf = twinbeam_pmf(params, cutoff=cutoff)[:dim_s, :dim_i]
+            return joint_pmf - jpd_data
 
     minner_model = Minimizer(model_2d, pars_model, fcn_args=([pd_data]))
     result_model = minner_model.minimize(method=method)
