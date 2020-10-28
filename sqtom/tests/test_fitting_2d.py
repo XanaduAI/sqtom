@@ -69,7 +69,7 @@ def test_two_schmidt_mode_guess_exact(eta_s, eta_i, sq_0, sq_1):
     assert np.allclose(sq_1, guess["sq_1"], atol=1.0e-2)
 
 
-@pytest.mark.parametrize("do_not_vary", ["eta_s", "noise_s", "eta_i", "noise_i", []])
+@pytest.mark.parametrize("do_not_vary", ["eta_s", "noise_s", "eta_i", "noise_i", None])
 @pytest.mark.parametrize("n_modes", [1, 2, 3])
 @pytest.mark.parametrize("threshold", [False, 5])
 def test_exact_model_2d(n_modes, do_not_vary, threshold):
