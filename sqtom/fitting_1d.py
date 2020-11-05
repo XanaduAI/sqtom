@@ -26,7 +26,6 @@ Phys. Rev. A 95, 053806 (2017)
 
 
 import numpy as np
-from numpy import sqrt
 from scipy.optimize import root_scalar
 from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import degenerate_pmf
