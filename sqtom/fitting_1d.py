@@ -96,8 +96,8 @@ def gen_hist_1d(beam):
     Returns:
         array: probability mass function of the click patterns for the beam
     """
-    nmax = int(np.max(pd_data))
-    return np.histogram(pd_data, bins=nmax, density=True)[0]
+    nmax = int(np.max(beam))
+    return np.histogram(beam, bins=nmax, density=True)[0]
 
 
 def threshold_1d(ps, nmax):
