@@ -31,19 +31,6 @@ from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import degenerate_pmf
 
 
-def gen_hist_1d(pd_data):
-    """Calculate the probability mass function of events.
-
-    Args:
-        pd_data (array): probability mass function of the photon events
-
-    Returns:
-        array: probability mass function of the click patterns for the beam
-    """
-    nmax = int(np.max(pd_data))
-    return np.histogram(pd_data, bins=nmax, density=True)[0]
-
-
 def two_schmidt_mode_guess(pd_data, sq_label="sq_"):
     """Given a single mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt occupations
     and dark counts parameters.
@@ -98,6 +85,19 @@ def marginal_calcs_1d(pd_data, as_dict=True):
     if as_dict:
         return {"n": nmean, "g2": g2}
     return np.array([nmean, g2])
+
+
+def gen_hist_1d(beam):
+    """Calculate the probability mass function of events.
+
+    Args:
+        beam (array): 1D events array containing the raw click events of the beam
+
+    Returns:
+        array: probability mass function of the click patterns for the beam
+    """
+    nmax = int(np.max(pd_data))
+    return np.histogram(pd_data, bins=nmax, density=True)[0]
 
 
 def threshold_1d(ps, nmax):
