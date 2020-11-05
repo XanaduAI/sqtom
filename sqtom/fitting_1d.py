@@ -26,18 +26,67 @@ Phys. Rev. A 95, 053806 (2017)
 
 
 import numpy as np
+from numpy import sqrt
+from scipy.optimize import root_scalar
 from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import degenerate_pmf
+
+
+def gen_hist_1d(pd_data):
+    """Calculate the probability mass function of events.
+
+    Args:
+        pd_data (array): probability mass function of the photon events
+
+    Returns:
+        array: probability mass function of the click patterns for the beam
+    """
+    nmax = int(np.max(pd_data))
+    return np.histogram(pd_data, bins=nmax, density=True)[0]
+
+
+def two_schmidt_mode_guess(pd_data, sq_label="sq_"):
+    """Given a single mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt occupations
+    and dark counts parameters.
+
+    This model is sensible only if the average g2 is above 2.
+
+    Args:
+        pd_data (array): rectangular array with the probability mass functions of the photon events
+        sq_label (string): label for the squeezing parameters.
+
+    Returns:
+        dict: dictionary containing a set of "reasonable" model parameters
+    """
+    res = marginal_calcs_1d(pd_data)
+    nmean = res["n"]
+    g2 = res["g2"]
+    P0 = pd_data[0]
+    def findeta(eta, nmean, g2, P0):
+        a = nmean / 4
+        b = (3 - g2) * (nmean ** 2) / 4 - nmean
+        c = (g2 - 3) * nmean ** 2
+        d = (3 - g2) * nmean ** 2 + 2 * nmean + 1 - 1 / P0 ** 2
+        return a * eta ** 3 + b * eta ** 2 + c * eta + d
+    eta = root_scalar(findeta, args=(nmean, g2, P0), x0=0, x1=1).root
+    n0 = (nmean + np.sqrt((g2 - 2) * nmean ** 2 - eta*nmean)) / (2 * eta)
+    n1 = (nmean - np.sqrt((g2 - 2) * nmean ** 2 - eta * nmean)) / (2 * eta)
+    noise = nmean / 1000
+    return {
+        "eta": eta,
+        sq_label + "0": n0,
+        sq_label + "1": n1,
+        "noise": noise,
+        "n_modes": 2,
+    }
 
 
 def marginal_calcs_1d(pd_data, as_dict=True):
     """Given a one dimensional array of probabilities it calculates the mean photon number
     and the g2.
-
     Args:
         pd_data (array): probability mass function of the photon events
         as_dict (boolean): whether to return the results as a dictionary
-
     Returns:
         dict or array: values of the mean photons number the corresponding g2.
     """
