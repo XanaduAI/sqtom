@@ -31,7 +31,7 @@ from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import degenerate_pmf
 
 
-def two_schmidt_mode_guess(pd_data, sq_label="sq_"):
+def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001):
     """Given a single mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt occupations
     and dark counts parameters.
 
@@ -59,7 +59,7 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_"):
     eta = root_scalar(findeta, args=(nmean, g2, P0), x0=0, x1=1).root
     n0 = (nmean + np.sqrt((g2 - 2) * nmean ** 2 - eta * nmean)) / (2 * eta)
     n1 = (nmean - np.sqrt((g2 - 2) * nmean ** 2 - eta * nmean)) / (2 * eta)
-    noise = nmean / 1000
+    noise = nmean * noise_fraction
     return {
         "eta": eta,
         sq_label + "0": n0,
