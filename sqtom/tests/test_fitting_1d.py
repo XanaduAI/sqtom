@@ -31,7 +31,7 @@ from sqtom.fitting_1d import (
 def test_gen_hist_1d(sq_0, eta):
     """Check that a histogram is constructed correctly for a degenerate squeezing source"""
     nsamples = 1_000_000
-    nmax = 10
+    nmax = 100
     pmf_init = degenerate_pmf({"sq_0": sq_0, "n_modes": 1, "eta": eta}, cutoff=nmax)
     samples = photon_number_sampler(pmf_init, nsamples)
     pmf_gen = gen_hist_1d(samples)
