@@ -56,7 +56,22 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001):
         d = (3 - g2) * nmean ** 2 + 2 * nmean + 1 - 1 / P0 ** 2
         return a * eta ** 3 + b * eta ** 2 + c * eta + d
 
-    eta = root_scalar(findeta, args=(nmean, g2, P0), bracket=(0, 1)).root
+    eta_set = np.linspace(-0.01, 1.01, num=52)
+    function_root_search = np.array([findeta(i, nmean, g2, P0) for i in eta_set])
+    indices = np.array([])
+    for i in range(function_root_search.size - 1):
+        if function_root_search[i + 1] / function_root_search[i] < 0:
+            indices = np.append(indices, i)
+            indices = np.append(indices, i + 1)
+    eta = root_scalar(
+        findeta,
+        args=(nmean, g2, P0),
+        bracket=(eta_set[int(indices[-1] - 1)], eta_set[int(indices[-1])]),
+    ).root
+    if eta > 1:
+        eta = 1
+    if eta < 0:
+        eta = 0
     n0 = (nmean + np.sqrt((g2 - 2) * nmean ** 2 - eta * nmean)) / (2 * eta)
     n1 = (nmean - np.sqrt((g2 - 2) * nmean ** 2 - eta * nmean)) / (2 * eta)
     noise = nmean * noise_fraction
