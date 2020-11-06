@@ -48,14 +48,16 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_"):
     nmean = res["n"]
     g2 = res["g2"]
     P0 = pd_data[0]
+
     def findeta(eta, nmean, g2, P0):
         a = nmean / 4
         b = (3 - g2) * (nmean ** 2) / 4 - nmean
         c = (g2 - 3) * nmean ** 2
         d = (3 - g2) * nmean ** 2 + 2 * nmean + 1 - 1 / P0 ** 2
         return a * eta ** 3 + b * eta ** 2 + c * eta + d
+
     eta = root_scalar(findeta, args=(nmean, g2, P0), x0=0, x1=1).root
-    n0 = (nmean + np.sqrt((g2 - 2) * nmean ** 2 - eta*nmean)) / (2 * eta)
+    n0 = (nmean + np.sqrt((g2 - 2) * nmean ** 2 - eta * nmean)) / (2 * eta)
     n1 = (nmean - np.sqrt((g2 - 2) * nmean ** 2 - eta * nmean)) / (2 * eta)
     noise = nmean / 1000
     return {
