@@ -15,7 +15,7 @@
 
 import pytest
 import numpy as np
-from thewalrus.samples import generate_hafnian_sample
+from thewalrus.samples import photon_number_sampler
 from sqtom.forward_solver import degenerate_pmf
 from sqtom.fitting_1d import (
     two_schmidt_mode_guess,
@@ -30,14 +30,13 @@ from sqtom.fitting_1d import (
 @pytest.mark.parametrize("eta", [0.1, 0.5, 1.0])
 def test_gen_hist_1d(sq_0, eta):
     """Check that a histogram is constructed correctly for a degenerate squeezing source"""
-    nsamples = 1000000
+    nsamples = 1_000_000
     nmax = 10
-    r = np.arcsinh(np.sqrt(sq_0))
-    cov = np.array([[eta * (np.exp(2 * r) - 1) + 1, 0], [0, eta * (np.exp(-2 * r) - 1) + 1]])
-    samples = generate_hafnian_sample(cov, cutoff=nmax, max_photons=nmax, approx_samples=nsamples)
+    pmf_init = degenerate_pmf({"sq_0": sq_0, "n_modes": 1, "eta": eta}, cutoff=nmax)
+    samples = photon_number_sampler(pmf_init, nsamples)
     pmf_gen = gen_hist_1d(samples)
-    pmf_expected = degenerate_pmf({"sq_0": sq_0, "n_modes": 1, "eta": eta}, cutoff=nmax)
-    assert np.allclose(pmf_gen, pmf_expected, atol=0.01)
+    pmf_final = degenerate_pmf({"sq_0": sq_0, "n_modes": 1, "eta": eta}, cutoff=np.max(samples))
+    assert np.allclose(pmf_gen, pmf_final, atol=0.01)
 
 
 @pytest.mark.parametrize("eta", [0.1, 0.5, 1.0])
