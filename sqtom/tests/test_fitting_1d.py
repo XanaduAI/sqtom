@@ -15,8 +15,47 @@
 
 import pytest
 import numpy as np
+from thewalrus.samples import generate_hafnian_sample
 from sqtom.forward_solver import degenerate_pmf
-from sqtom.fitting_1d import fit_1d, threshold_1d, marginal_calcs_1d
+from sqtom.fitting_1d import (
+    two_schmidt_mode_guess,
+    marginal_calcs_1d,
+    gen_hist_1d,
+    threshold_1d,
+    fit_1d,
+)
+
+
+@pytest.mark.parametrize("sq_0", [0.1, 1.0, 2.0])
+@pytest.mark.parametrize("eta", [0.1, 0.5, 1.0])
+def test_gen_hist_1d(sq_0, eta):
+    """Check that a histogram is constructed correctly for a degenerate squeezing source"""
+    nsamples = 1000000
+    nmax = 10
+    r = np.arcsinh(np.sqrt(sq_0))
+    mu = np.array([0, 0])
+    cov = np.array([[eta * (np.exp(2 * r) - 1) + 1, 0], [0, eta * (np.exp(-2 * r) - 1) + 1]])
+    samples = generate_hafnian_sample(cov, cutoff=nmax, max_photons=nmax, approx_samples=nsamples)
+    pmf_gen = gen_hist_1d(samples)
+    pmf_expected = degenerate_pmf({"sq_0": sq_0, "n_modes": 1, "eta": eta}, cutoff=nmax)
+    assert np.allclose(pmf_gen, pmf_expected, atol=0.01)
+
+
+@pytest.mark.parametrize("eta", [0.1, 0.5, 1.0])
+@pytest.mark.parametrize("sq_0", [0.0, 0.1, 1.0, 2.0])
+@pytest.mark.parametrize("sq_1", [0.1, 1.0, 2.0])
+def test_two_schmidt_mode_guess_exact(eta, sq_0, sq_1):
+    """Test that one can invert correctly when there are two Schmidt modes
+    and no dark counts.
+    """
+    pmf = degenerate_pmf({"sq_0": sq_0, "sq_1": sq_1, "n_modes": 2, "eta": eta})
+    guess = two_schmidt_mode_guess(pmf)
+    assert np.allclose(eta, guess["eta"], atol=1.0e-2)
+    sq_ns = [sq_0, sq_1]  # We need to sort sq_n1 and sq_n2 so that sq_n1 >= sq_n2
+    sq_0 = np.max(sq_ns)
+    sq_1 = np.min(sq_ns)
+    assert np.allclose(sq_0, guess["sq_0"], atol=1.0e-2)
+    assert np.allclose(sq_1, guess["sq_1"], atol=1.0e-2)
 
 
 @pytest.mark.parametrize("do_not_vary", ["eta", "noise", None])
