@@ -55,6 +55,8 @@ def test_two_schmidt_mode_guess_exact(eta, sq_0, sq_1):
         sq_1 = np.min(sq_ns)
         assert np.allclose(sq_0, guess["sq_0"], atol=0.1)
         assert np.allclose(sq_1, guess["sq_1"], atol=0.1)
+    else:
+        assert True
 
 
 @pytest.mark.parametrize("do_not_vary", ["eta", "noise", None])
