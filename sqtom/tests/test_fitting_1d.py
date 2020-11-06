@@ -33,7 +33,7 @@ def test_gen_hist_1d(sq_0, eta):
     nsamples = 1000000
     nmax = 10
     r = np.arcsinh(np.sqrt(sq_0))
-    cov = np.array([[eta*(np.exp(2*r) - 1) + 1, 0], [0, eta*(np.exp(-2*r) - 1) + 1]])
+    cov = np.array([[eta * (np.exp(2 * r) - 1) + 1, 0], [0, eta * (np.exp(-2 * r) - 1) + 1]])
     samples = generate_hafnian_sample(cov, cutoff=nmax, max_photons=nmax, approx_samples=nsamples)
     pmf_gen = gen_hist_1d(samples)
     pmf_expected = degenerate_pmf({"sq_0": sq_0, "n_modes": 1, "eta": eta}, cutoff=nmax)
