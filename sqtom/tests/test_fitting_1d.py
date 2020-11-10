@@ -36,7 +36,7 @@ def test_gen_hist_1d(sq_0, eta):
     samples = photon_number_sampler(pmf_init, nsamples)
     pmf_gen = gen_hist_1d(samples)
     pmf_final = degenerate_pmf({"sq_0": sq_0, "n_modes": 1, "eta": eta}, cutoff=np.max(samples))
-    atol = 10/np.sqrt(nsamples)
+    atol = 10 / np.sqrt(nsamples)
     assert np.allclose(pmf_gen, pmf_final, atol=atol)
 
 
