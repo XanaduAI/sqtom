@@ -44,50 +44,67 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001):
     Returns:
         dict: dictionary containing a set of "reasonable" model parameters
     """
-    res = marginal_calcs_1d(pd_data)
-    nmean = res["n"]
-    g2 = res["g2"]
+    pd_data_size = pd_data.size
+    if (
+        pd_data_size < 2
+    ):  # Accounting for when the pd_data is just size 1 due to only having an entry for P0 == 1
+        pd_data = np.append(pd_data, 0)
     P0 = pd_data[0]
+    P1 = pd_data[1]
+    if P0 + P1 < 1:
+        res = marginal_calcs_1d(pd_data)
+        nmean = res["n"]
+        g2 = res["g2"]
 
-    def findeta(eta, nmean, g2, P0):
-        a = nmean / 4
-        b = (3 - g2) * (nmean ** 2) / 4 - nmean
-        c = (g2 - 3) * nmean ** 2
-        d = (3 - g2) * nmean ** 2 + 2 * nmean + 1 - 1 / P0 ** 2
-        return a * eta ** 3 + b * eta ** 2 + c * eta + d
+        def findeta(eta, nmean, g2, P0):
+            a = nmean / 4
+            b = (3 - g2) * (nmean ** 2) / 4 - nmean
+            c = (g2 - 3) * nmean ** 2
+            d = (3 - g2) * nmean ** 2 + 2 * nmean + 1 - 1 / P0 ** 2
+            return a * eta ** 3 + b * eta ** 2 + c * eta + d
 
-    eta_set = np.linspace(-0.01, 1.01, num=52)
-    function_root_search = np.array([findeta(i, nmean, g2, P0) for i in eta_set])
-    indices = np.array([])
-    for i in range(function_root_search.size - 1):
-        if function_root_search[i + 1] / function_root_search[i] < 0:
-            indices = np.append(indices, i)
-            indices = np.append(indices, i + 1)
-    eta = root_scalar(
-        findeta,
-        args=(nmean, g2, P0),
-        bracket=(eta_set[int(indices[-1] - 1)], eta_set[int(indices[-1])]),
-    ).root
-    eta = min(eta, 1)
-    eta = max(eta, 0)
-    d = (g2 - 2) * nmean ** 2 - eta * nmean
-    if d >= 0 and eta > 0:
-        n0 = (nmean + np.sqrt(d)) / (2 * eta)
-        n1 = (nmean - np.sqrt(d)) / (2 * eta)
-    elif d < 0 < eta:
-        n0 = nmean / (2 * eta)
-        n1 = nmean / (2 * eta)
+        eta_set = np.linspace(-0.01, 1.01, num=509)
+        function_root_search = np.array([findeta(i, nmean, g2, P0) for i in eta_set])
+        indices = np.array([])
+        for i in range(function_root_search.size - 1):
+            if function_root_search[i + 1] / function_root_search[i] < 0:
+                indices = np.append(indices, i)
+                indices = np.append(indices, i + 1)
+        eta = root_scalar(
+            findeta,
+            args=(nmean, g2, P0),
+            bracket=(eta_set[int(indices[-1] - 1)], eta_set[int(indices[-1])]),
+        ).root
+        eta = min(eta, 1)
+        eta = max(eta, 0)
+        d = (g2 - 2) * nmean ** 2 - eta * nmean
+        if d >= 0 and eta > 0:
+            n0 = (nmean + np.sqrt(d)) / (2 * eta)
+            n1 = (nmean - np.sqrt(d)) / (2 * eta)
+        elif d < 0 < eta:
+            n0 = nmean / (2 * eta)
+            n1 = nmean / (2 * eta)
+        else:
+            n0 = 0
+            n1 = 0
+        noise = nmean * noise_fraction
+        return {
+            "eta": eta,
+            sq_label + "0": n0,
+            sq_label + "1": n1,
+            "noise": noise,
+            "n_modes": 2,
+            "warning": None,
+        }
     else:
-        n0 = 0
-        n1 = 0
-    noise = nmean * noise_fraction
-    return {
-        "eta": eta,
-        sq_label + "0": n0,
-        sq_label + "1": n1,
-        "noise": noise,
-        "n_modes": 2,
-    }
+        return {
+            "eta": 1,
+            sq_label + "0": 0,
+            sq_label + "1": 0,
+            "noise": 0,
+            "n_modes": 2,
+            "warning": "Too few samples to give meaningful result",
+        }
 
 
 def marginal_calcs_1d(pd_data, as_dict=True):
