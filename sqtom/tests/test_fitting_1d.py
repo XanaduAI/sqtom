@@ -39,7 +39,7 @@ def test_gen_hist_1d(sq_0, eta):
     assert np.allclose(pmf_gen, pmf_final, atol=0.02)
 
 
-@pytest.mark.parametrize("eta", [0.1, 0.5, 1.0])
+@pytest.mark.parametrize("eta", [0.0, 0.5, 1.0])
 @pytest.mark.parametrize("sq_0", [0.1, 1.0, 2.0])
 @pytest.mark.parametrize("sq_1", [0.0, 0.1, 1.0])
 def test_two_schmidt_mode_guess_exact(eta, sq_0, sq_1):

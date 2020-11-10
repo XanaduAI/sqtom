@@ -68,14 +68,13 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001):
         args=(nmean, g2, P0),
         bracket=(eta_set[int(indices[-1] - 1)], eta_set[int(indices[-1])]),
     ).root
-    if eta > 1:
-        eta = 1
-    if eta < 0:
-        eta = 0
-    if (g2 - 2) * nmean ** 2 - eta * nmean >= 0 and eta > 0:
-        n0 = (nmean + np.sqrt((g2 - 2) * nmean ** 2 - eta * nmean)) / (2 * eta)
-        n1 = (nmean - np.sqrt((g2 - 2) * nmean ** 2 - eta * nmean)) / (2 * eta)
-    elif (g2 - 2) * nmean ** 2 - eta * nmean < 0 < eta:
+    eta = min(eta, 1)
+    eta = max(eta, 0)
+    d = (g2 - 2) * nmean ** 2 - eta * nmean)
+    if d >= 0 and eta > 0:
+        n0 = (nmean + np.sqrt(d) / (2 * eta)
+        n1 = (nmean - np.sqrt(d) / (2 * eta)
+    elif d < 0 < eta:
         n0 = nmean / (2 * eta)
         n1 = nmean / (2 * eta)
     else:
