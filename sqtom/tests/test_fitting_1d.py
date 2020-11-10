@@ -26,21 +26,20 @@ from sqtom.fitting_1d import (
 )
 
 
-@pytest.mark.parametrize("sq_0", [0.1, 1.0])
-@pytest.mark.parametrize("eta", [0.3, 1.0])
+@pytest.mark.parametrize("sq_0", [0.1, 1.0, 2.0])
+@pytest.mark.parametrize("eta", [0.1, 0.5, 1.0])
 def test_gen_hist_1d(sq_0, eta):
     """Check that a histogram is constructed correctly for a degenerate squeezing source"""
-    nsamples = 100_000
-    nmax = 30
+    nsamples = 1_000_000
+    nmax = 100
     pmf_init = degenerate_pmf({"sq_0": sq_0, "n_modes": 1, "eta": eta}, cutoff=nmax)
     samples = photon_number_sampler(pmf_init, nsamples)
     pmf_gen = gen_hist_1d(samples)
     pmf_final = degenerate_pmf({"sq_0": sq_0, "n_modes": 1, "eta": eta}, cutoff=np.max(samples))
-    atol = 10 / np.sqrt(nsamples)
-    assert np.allclose(pmf_gen, pmf_final, atol=atol)
+    assert np.allclose(pmf_gen, pmf_final, atol=0.02)
 
 
-@pytest.mark.parametrize("eta", [0.0, 0.5, 1.0])
+@pytest.mark.parametrize("eta", [0.1, 0.5, 1.0])
 @pytest.mark.parametrize("sq_0", [0.1, 1.0, 2.0])
 @pytest.mark.parametrize("sq_1", [0.0, 0.1, 1.0])
 def test_two_schmidt_mode_guess_exact(eta, sq_0, sq_1):
