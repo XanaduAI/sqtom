@@ -70,10 +70,10 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001):
     ).root
     eta = min(eta, 1)
     eta = max(eta, 0)
-    d = (g2 - 2) * nmean ** 2 - eta * nmean)
+    d = (g2 - 2) * nmean ** 2 - eta * nmean
     if d >= 0 and eta > 0:
-        n0 = (nmean + np.sqrt(d) / (2 * eta)
-        n1 = (nmean - np.sqrt(d) / (2 * eta)
+        n0 = (nmean + np.sqrt(d)) / (2 * eta)
+        n1 = (nmean - np.sqrt(d)) / (2 * eta)
     elif d < 0 < eta:
         n0 = nmean / (2 * eta)
         n1 = nmean / (2 * eta)
