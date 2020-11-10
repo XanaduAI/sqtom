@@ -96,15 +96,14 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001):
             "n_modes": 2,
             "warning": None,
         }
-    else:
-        return {
-            "eta": 1,
-            sq_label + "0": 0,
-            sq_label + "1": 0,
-            "noise": 0,
-            "n_modes": 2,
-            "warning": "Too few samples to give meaningful result",
-        }
+    return {
+        "eta": 1,
+        sq_label + "0": 0,
+        sq_label + "1": 0,
+        "noise": 0,
+        "n_modes": 2,
+        "warning": "Too few samples to give meaningful result",
+    }
 
 
 def marginal_calcs_1d(pd_data, as_dict=True):
