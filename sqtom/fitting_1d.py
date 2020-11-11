@@ -32,17 +32,21 @@ from sqtom.forward_solver import degenerate_pmf
 
 
 def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001):
-    """Given a single mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt occupations
-    and dark counts parameters.
+    """Given a single mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt
+    occupations and dark counts parameters.
 
-    This model is sensible only if the average g2 is above 2.
+    This model is sensible only if there is a probability for an n == 2 event. If there are only probabilities for
+    n == 0 and n == 1 then the g2 will erroneously be calculated as 0 and as a result the remainder of the estimtes will
+    be nonsense.
 
     Args:
         pd_data (array): rectangular array with the probability mass functions of the photon events
         sq_label (string): label for the squeezing parameters.
 
     Returns:
-        dict: dictionary containing a set of "reasonable" model parameters
+        dict: dictionary containing a set of "reasonable" model parameters. In the case that the pd_data only has
+        entries for n == 0 and n == 1 (or just n == 0), it returns a simplified guess along with a warning message that
+        there are two few samples for reasonable fitting
     """
     pd_data_size = pd_data.size
     if (
@@ -180,45 +184,48 @@ def fit_1d(
         noise_label (string): label for the noise parameters.
 
     Returns:
-        Object: object containing the optimized parameter and several goodness-of-fit statistics
+        Object: object containing the optimized parameter and several goodness-of-fit statistics. If there are too few
+        data points for an adequate fit then it returns a string stating this.
     """
-    if do_not_vary is None:
-        do_not_vary = []
+    if guess["warning"] is None:
+        if do_not_vary is None:
+            do_not_vary = []
 
-    pars_model = Parameters()
-    n_modes = guess["n_modes"]
-    pars_model.add("n_modes", value=n_modes, vary=False)
-    # Add the squeezing parameters
-    for i in range(n_modes):
-        pars_model.add(sq_label + str(i), value=guess["sq_" + str(i)], min=0.0)
+        pars_model = Parameters()
+        n_modes = guess["n_modes"]
+        pars_model.add("n_modes", value=n_modes, vary=False)
+        # Add the squeezing parameters
+        for i in range(n_modes):
+            pars_model.add(sq_label + str(i), value=guess["sq_" + str(i)], min=0.0)
 
-    if "eta" in do_not_vary:
-        pars_model.add("eta", value=guess["eta"], vary=False)
-    else:
-        pars_model.add("eta", value=guess["eta"], min=0.0, max=1.0)
+        if "eta" in do_not_vary:
+            pars_model.add("eta", value=guess["eta"], vary=False)
+        else:
+            pars_model.add("eta", value=guess["eta"], min=0.0, max=1.0)
 
-    if noise_label in do_not_vary:
-        pars_model.add(noise_label, value=guess[noise_label], vary=False)
-    else:
-        pars_model.add(noise_label, value=guess[noise_label], min=0.0)
+        if noise_label in do_not_vary:
+            pars_model.add(noise_label, value=guess[noise_label], vary=False)
+        else:
+            pars_model.add(noise_label, value=guess[noise_label], min=0.0)
 
-    if threshold:
+        if threshold:
 
-        def model_1d(params, pd_data):
-            ndim = pd_data.shape[0]
-            dpmf = degenerate_pmf(params, cutoff=cutoff)
-            return threshold_1d(dpmf, ndim) - pd_data
+            def model_1d(params, pd_data):
+                ndim = pd_data.shape[0]
+                dpmf = degenerate_pmf(params, cutoff=cutoff)
+                return threshold_1d(dpmf, ndim) - pd_data
 
-    else:
+        else:
 
-        def model_1d(params, pd_data):
-            ndim = pd_data.shape[0]
-            return (
-                degenerate_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label)[
-                    :ndim
-                ]
-                - pd_data
-            )
+            def model_1d(params, pd_data):
+                ndim = pd_data.shape[0]
+                return (
+                    degenerate_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label)[
+                        :ndim
+                    ]
+                    - pd_data
+                )
 
-    minner_model = Minimizer(model_1d, pars_model, fcn_args=([pd_data]))
-    return minner_model.minimize(method=method)
+        minner_model = Minimizer(model_1d, pars_model, fcn_args=([pd_data]))
+        return minner_model.minimize(method=method)
+    return "Too few data points for adequate fitting"
