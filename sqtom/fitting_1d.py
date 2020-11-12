@@ -32,61 +32,81 @@ from sqtom.forward_solver import degenerate_pmf
 
 
 def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001):
-    """Given a single mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt occupations
-    and dark counts parameters.
+    """Given a single mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt
+    occupations and dark counts parameters.
 
-    This model is sensible only if the average g2 is above 2.
+    This model is sensible only if there is a probability for an n == 2 event. If there are only probabilities for
+    n == 0 and n == 1 then the g2 will erroneously be calculated as 0 and as a result the remainder of the estimtes will
+    be nonsense.
 
     Args:
         pd_data (array): rectangular array with the probability mass functions of the photon events
         sq_label (string): label for the squeezing parameters.
 
     Returns:
-        dict: dictionary containing a set of "reasonable" model parameters
+        dict: dictionary containing a set of "reasonable" model parameters. In the case that the pd_data only has
+        entries for n == 0 and n == 1 (or just n == 0), it returns a simplified guess along with a warning message that
+        there are two few samples for reasonable fitting
     """
-    res = marginal_calcs_1d(pd_data)
-    nmean = res["n"]
-    g2 = res["g2"]
+    pd_data_size = pd_data.size
+    if (
+        pd_data_size < 2
+    ):  # Accounting for when the pd_data is just size 1 due to only having an entry for P0 == 1
+        pd_data = np.append(pd_data, 0)
     P0 = pd_data[0]
+    P1 = pd_data[1]
+    if P0 + P1 < 1:
+        res = marginal_calcs_1d(pd_data)
+        nmean = res["n"]
+        g2 = res["g2"]
 
-    def findeta(eta, nmean, g2, P0):
-        a = nmean / 4
-        b = (3 - g2) * (nmean ** 2) / 4 - nmean
-        c = (g2 - 3) * nmean ** 2
-        d = (3 - g2) * nmean ** 2 + 2 * nmean + 1 - 1 / P0 ** 2
-        return a * eta ** 3 + b * eta ** 2 + c * eta + d
+        def findeta(eta, nmean, g2, P0):
+            a = nmean / 4
+            b = (3 - g2) * (nmean ** 2) / 4 - nmean
+            c = (g2 - 3) * nmean ** 2
+            d = (3 - g2) * nmean ** 2 + 2 * nmean + 1 - 1 / P0 ** 2
+            return a * eta ** 3 + b * eta ** 2 + c * eta + d
 
-    eta_set = np.linspace(-0.01, 1.01, num=52)
-    function_root_search = np.array([findeta(i, nmean, g2, P0) for i in eta_set])
-    indices = np.array([])
-    for i in range(function_root_search.size - 1):
-        if function_root_search[i + 1] / function_root_search[i] < 0:
-            indices = np.append(indices, i)
-            indices = np.append(indices, i + 1)
-    eta = root_scalar(
-        findeta,
-        args=(nmean, g2, P0),
-        bracket=(eta_set[int(indices[-1] - 1)], eta_set[int(indices[-1])]),
-    ).root
-    eta = min(eta, 1)
-    eta = max(eta, 0)
-    d = (g2 - 2) * nmean ** 2 - eta * nmean
-    if d >= 0 and eta > 0:
-        n0 = (nmean + np.sqrt(d)) / (2 * eta)
-        n1 = (nmean - np.sqrt(d)) / (2 * eta)
-    elif d < 0 < eta:
-        n0 = nmean / (2 * eta)
-        n1 = nmean / (2 * eta)
-    else:
-        n0 = 0
-        n1 = 0
-    noise = nmean * noise_fraction
+        eta_set = np.linspace(-0.01, 1.01, num=509)
+        function_root_search = np.array([findeta(i, nmean, g2, P0) for i in eta_set])
+        indices = np.array([])
+        for i in range(function_root_search.size - 1):
+            if function_root_search[i + 1] / function_root_search[i] < 0:
+                indices = np.append(indices, i)
+                indices = np.append(indices, i + 1)
+        eta = root_scalar(
+            findeta,
+            args=(nmean, g2, P0),
+            bracket=(eta_set[int(indices[-1] - 1)], eta_set[int(indices[-1])]),
+        ).root
+        eta = min(eta, 1)
+        eta = max(eta, 0)
+        d = (g2 - 2) * nmean ** 2 - eta * nmean
+        if d >= 0 and eta > 0:
+            n0 = (nmean + np.sqrt(d)) / (2 * eta)
+            n1 = (nmean - np.sqrt(d)) / (2 * eta)
+        elif d < 0 < eta:
+            n0 = nmean / (2 * eta)
+            n1 = nmean / (2 * eta)
+        else:
+            n0 = 0
+            n1 = 0
+        noise = nmean * noise_fraction
+        return {
+            "eta": eta,
+            sq_label + "0": n0,
+            sq_label + "1": n1,
+            "noise": noise,
+            "n_modes": 2,
+            "warning": None,
+        }
     return {
-        "eta": eta,
-        sq_label + "0": n0,
-        sq_label + "1": n1,
-        "noise": noise,
+        "eta": 1,
+        sq_label + "0": 0,
+        sq_label + "1": 0,
+        "noise": 0,
         "n_modes": 2,
+        "warning": "Too few samples to give meaningful result",
     }
 
 
@@ -164,45 +184,48 @@ def fit_1d(
         noise_label (string): label for the noise parameters.
 
     Returns:
-        Object: object containing the optimized parameter and several goodness-of-fit statistics
+        Object: object containing the optimized parameter and several goodness-of-fit statistics. If there are too few
+        data points for an adequate fit then it returns a string stating this.
     """
-    if do_not_vary is None:
-        do_not_vary = []
+    if guess["warning"] is None:
+        if do_not_vary is None:
+            do_not_vary = []
 
-    pars_model = Parameters()
-    n_modes = guess["n_modes"]
-    pars_model.add("n_modes", value=n_modes, vary=False)
-    # Add the squeezing parameters
-    for i in range(n_modes):
-        pars_model.add(sq_label + str(i), value=guess["sq_" + str(i)], min=0.0)
+        pars_model = Parameters()
+        n_modes = guess["n_modes"]
+        pars_model.add("n_modes", value=n_modes, vary=False)
+        # Add the squeezing parameters
+        for i in range(n_modes):
+            pars_model.add(sq_label + str(i), value=guess["sq_" + str(i)], min=0.0)
 
-    if "eta" in do_not_vary:
-        pars_model.add("eta", value=guess["eta"], vary=False)
-    else:
-        pars_model.add("eta", value=guess["eta"], min=0.0, max=1.0)
+        if "eta" in do_not_vary:
+            pars_model.add("eta", value=guess["eta"], vary=False)
+        else:
+            pars_model.add("eta", value=guess["eta"], min=0.0, max=1.0)
 
-    if noise_label in do_not_vary:
-        pars_model.add(noise_label, value=guess[noise_label], vary=False)
-    else:
-        pars_model.add(noise_label, value=guess[noise_label], min=0.0)
+        if noise_label in do_not_vary:
+            pars_model.add(noise_label, value=guess[noise_label], vary=False)
+        else:
+            pars_model.add(noise_label, value=guess[noise_label], min=0.0)
 
-    if threshold:
+        if threshold:
 
-        def model_1d(params, pd_data):
-            ndim = pd_data.shape[0]
-            dpmf = degenerate_pmf(params, cutoff=cutoff)
-            return threshold_1d(dpmf, ndim) - pd_data
+            def model_1d(params, pd_data):
+                ndim = pd_data.shape[0]
+                dpmf = degenerate_pmf(params, cutoff=cutoff)
+                return threshold_1d(dpmf, ndim) - pd_data
 
-    else:
+        else:
 
-        def model_1d(params, pd_data):
-            ndim = pd_data.shape[0]
-            return (
-                degenerate_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label)[
-                    :ndim
-                ]
-                - pd_data
-            )
+            def model_1d(params, pd_data):
+                ndim = pd_data.shape[0]
+                return (
+                    degenerate_pmf(
+                        params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label
+                    )[:ndim]
+                    - pd_data
+                )
 
-    minner_model = Minimizer(model_1d, pars_model, fcn_args=([pd_data]))
-    return minner_model.minimize(method=method)
+        minner_model = Minimizer(model_1d, pars_model, fcn_args=([pd_data]))
+        return minner_model.minimize(method=method)
+    return "Too few data points for adequate fitting"
