@@ -171,8 +171,7 @@ def fit_1d(
         noise_label (string): label for the noise parameters.
 
     Returns:
-        Object: object containing the optimized parameter and several goodness-of-fit statistics. If there are too few
-        data points for an adequate fit then it returns a string stating this.
+        Object: object containing the optimized parameter and several goodness-of-fit statistics.
     """
     if do_not_vary is None:
         do_not_vary = []
