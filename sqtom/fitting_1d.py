@@ -25,8 +25,8 @@ Phys. Rev. A 95, 053806 (2017)
 """
 
 
-import numpy as np
 import warnings
+import numpy as np
 from scipy.optimize import root_scalar
 from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import degenerate_pmf
@@ -207,9 +207,9 @@ def fit_1d(
         def model_1d(params, pd_data):
             ndim = pd_data.shape[0]
             return (
-                degenerate_pmf(params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label)[
-                    :ndim
-                ]
+                degenerate_pmf(
+                    params, cutoff=cutoff, sq_label=sq_label, noise_label=noise_label
+                )[:ndim]
                 - pd_data
             )
 
