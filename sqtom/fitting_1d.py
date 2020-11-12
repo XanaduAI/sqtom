@@ -50,6 +50,7 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001, atol=1
     res = marginal_calcs_1d(pd_data)
     nmean = res["n"]
     g2 = res["g2"]
+    P0 = pd_data[0]
     if np.allclose(nmean, 0, atol=atol):
         raise Warning("The average photon number is zero")
         return None
