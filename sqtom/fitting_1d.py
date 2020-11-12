@@ -26,6 +26,7 @@ Phys. Rev. A 95, 053806 (2017)
 
 
 import numpy as np
+import warnings
 from scipy.optimize import root_scalar
 from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import degenerate_pmf
@@ -52,10 +53,10 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001, atol=1
     g2 = res["g2"]
     P0 = pd_data[0]
     if np.allclose(nmean, 0, atol=atol):
-        raise Warning("The average photon number is zero")
+        warnings.warn("The average photon number is zero")
         return None
     if np.allclose(g2, 0, atol=atol):
-        raise Warning("Not enough samples for suitable guess")
+        warnings.warn("Not enough samples for suitable guess")
         return None
 
     def findeta(eta, nmean, g2, P0):
