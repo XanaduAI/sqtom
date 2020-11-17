@@ -43,8 +43,8 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001, atol=1
         sq_label (string): label for the squeezing parameters.
 
     Returns:
-        dict: dictionary containing a set of "reasonable" model parameters. In the case that the pd_data only has
-        entries for n == 0, or n == 0 and n == 1, it returns None along with a warning message.
+        dict: dictionary containing a set of "reasonable" model parameters if the assumptions of the model
+        are warranted; otherwise it returns None and raises a warning.
     """
     res = marginal_calcs_1d(pd_data)
     nmean = res["n"]
