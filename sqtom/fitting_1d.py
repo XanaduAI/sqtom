@@ -36,9 +36,7 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001, atol=1
     """Given a single mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt
     occupations and dark counts parameters.
 
-    This model is sensible only if there is a probability for an n == 2 event. If there are only probabilities for
-    n == 0 and n == 1 then the g2 will erroneously be calculated as 0 and as a result the remainder of the estimtes will
-    be nonsense.
+    This model is sensible only if the mean photon number and the g2 is positive.
 
     Args:
         pd_data (array): rectangular array with the probability mass functions of the photon events
