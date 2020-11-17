@@ -15,7 +15,6 @@
 
 import pytest
 import numpy as np
-from scipy.stats import nbinom
 from sqtom.forward_solver import degenerate_pmf
 from sqtom.fitting_1d import (
     two_schmidt_mode_guess,
