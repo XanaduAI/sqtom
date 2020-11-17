@@ -164,7 +164,7 @@ def fit_1d(
         guess (dict): dictionary with the guesses for the different parameters
         method (string): method to be used by the optimizer
         do_not_vary (list): list of variables that should be held constant during optimization
-        threshold (boolean or int): whether to threshold the photon probbailitites at value threshold
+        threshold (boolean or int): whether to threshold the photon probabilitites at value threshold
         cutoff (int): internal cutoff
         sq_label (string): string label for the squeezing parameters
         noise_label (string): label for the noise parameters.
