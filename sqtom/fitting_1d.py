@@ -40,7 +40,7 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001, atol=1
 
     Args:
         pd_data (array): rectangular array with the probability mass functions of the photon events
-        sq_label (string): label for the squeezing parameters.
+        sq_label (string): label for the squeezing parameters
 
     Returns:
         dict: dictionary containing a set of "reasonable" model parameters if the assumptions of the model

@@ -44,12 +44,12 @@ def test_gen_hist_1d(sq_0):
 @pytest.mark.parametrize("sq_1", [0.0, 0.1, 1.0])
 def test_two_schmidt_mode_guess_exact(eta, sq_0, sq_1):
     """Test that one can invert correctly when there are two Schmidt modes
-    and no dark counts.
+    and no dark counts
     """
     pmf = degenerate_pmf({"sq_0": sq_0, "sq_1": sq_1, "n_modes": 2, "eta": eta})
     guess = two_schmidt_mode_guess(pmf)
     assert np.allclose(eta, guess["eta"], atol=1.0e-2)
-    sq_ns = [sq_0, sq_1]  # We need to sort sq_n1 and sq_n2 so that sq_n1 >= sq_n2
+    sq_ns = [sq_0, sq_1]  # We need to sort sq_n0 and sq_n1 so that sq_n0 >= sq_n1
     sq_0 = np.max(sq_ns)
     sq_1 = np.min(sq_ns)
     assert np.allclose(sq_0, guess["sq_0"], atol=0.1)
