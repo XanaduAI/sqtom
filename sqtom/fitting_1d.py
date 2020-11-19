@@ -25,23 +25,87 @@ Phys. Rev. A 95, 053806 (2017)
 """
 
 
+import warnings
 import numpy as np
+from scipy.optimize import root_scalar
 from lmfit import Minimizer, Parameters
 from sqtom.forward_solver import degenerate_pmf
+
+
+def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001, atol=1e-8):
+    """Given a single mode histogram, this function generates a "physically" motivated guess for the loss, Schmidt
+    occupations and dark counts parameters.
+
+    This model assumes that the mean photon number and the g2 are strictly positive.
+
+    Args:
+        pd_data (array): rectangular array with the probability mass functions of the photon events
+        sq_label (string): label for the squeezing parameters
+
+    Returns:
+        dict: dictionary containing a set of "reasonable" model parameters if the assumptions of the model
+        are warranted; otherwise it returns None and raises a warning.
+    """
+    res = marginal_calcs_1d(pd_data)
+    nmean = res["n"]
+    g2 = res["g2"]
+    P0 = pd_data[0]
+    if np.allclose(nmean, 0, atol=atol):
+        warnings.warn("The average photon number is zero")
+        return None
+    if np.allclose(g2, 0, atol=atol):
+        warnings.warn("Not enough samples for suitable guess")
+        return None
+
+    def find_eta(eta, nmean, g2, P0):
+        a = nmean / 4
+        b = (3 - g2) * (nmean ** 2) / 4 - nmean
+        c = (g2 - 3) * nmean ** 2
+        d = (3 - g2) * nmean ** 2 + 2 * nmean + 1 - 1 / P0 ** 2
+        return a * eta ** 3 + b * eta ** 2 + c * eta + d
+
+    eta_set = np.linspace(-0.01, 1.01, num=509)
+    function_root_search = np.array([find_eta(i, nmean, g2, P0) for i in eta_set])
+    indices = np.array([])
+    for i in range(function_root_search.size - 1):
+        if function_root_search[i + 1] / function_root_search[i] < 0:
+            indices = np.append(indices, i)
+            indices = np.append(indices, i + 1)
+    eta = root_scalar(
+        find_eta,
+        args=(nmean, g2, P0),
+        bracket=(eta_set[int(indices[-1] - 1)], eta_set[int(indices[-1])]),
+    ).root
+    eta = min(eta, 1)
+    eta = max(eta, 0)
+    d = (g2 - 2) * nmean ** 2 - eta * nmean
+    n0 = 0
+    n1 = 0
+    if d >= 0 and eta > 0:
+        n0 = (nmean + np.sqrt(d)) / (2 * eta)
+        n1 = (nmean - np.sqrt(d)) / (2 * eta)
+    elif d < 0 < eta:
+        n0 = nmean / (2 * eta)
+        n1 = nmean / (2 * eta)
+    noise = nmean * noise_fraction
+    return {
+        "eta": eta,
+        sq_label + "0": n0,
+        sq_label + "1": n1,
+        "noise": noise,
+        "n_modes": 2,
+    }
 
 
 def marginal_calcs_1d(pd_data, as_dict=True):
     """Given a one dimensional array of probabilities it calculates the mean photon number
     and the g2.
-
     Args:
         pd_data (array): probability mass function of the photon events
         as_dict (boolean): whether to return the results as a dictionary
-
     Returns:
         dict or array: values of the mean photons number the corresponding g2.
     """
-
     intn = pd_data.shape[0]
     n = np.arange(intn)
     nmean = pd_data @ n
@@ -50,6 +114,19 @@ def marginal_calcs_1d(pd_data, as_dict=True):
     if as_dict:
         return {"n": nmean, "g2": g2}
     return np.array([nmean, g2])
+
+
+def gen_hist_1d(beam):
+    """Calculate the probability mass function of events.
+
+    Args:
+        beam (array): 1D events array containing the raw click events of the beam
+
+    Returns:
+        array: probability mass function of the click patterns for the beam
+    """
+    nmax = int(np.max(beam))
+    return np.histogram(beam, bins=nmax, density=True)[0]
 
 
 def threshold_1d(ps, nmax):
@@ -87,13 +164,13 @@ def fit_1d(
         guess (dict): dictionary with the guesses for the different parameters
         method (string): method to be used by the optimizer
         do_not_vary (list): list of variables that should be held constant during optimization
-        threshold (boolean or int): whether to threshold the photon probbailitites at value threshold
+        threshold (boolean or int): whether to threshold the photon probabilitites at value threshold
         cutoff (int): internal cutoff
         sq_label (string): string label for the squeezing parameters
         noise_label (string): label for the noise parameters.
 
     Returns:
-        Object: object containing the optimized parameter and several goodness-of-fit statistics
+        Object: object containing the optimized parameter and several goodness-of-fit statistics.
     """
     if do_not_vary is None:
         do_not_vary = []
