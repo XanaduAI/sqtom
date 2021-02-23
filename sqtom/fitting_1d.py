@@ -110,10 +110,12 @@ def marginal_calcs_1d(pd_data, as_dict=True):
     n = np.arange(intn)
     nmean = pd_data @ n
     nmean2 = pd_data @ n ** 2
+    nmean3 = pd_data @ n ** 3
     g2 = (nmean2 - nmean) / nmean ** 2
+    g3 = (nmean3 - 3 * nmean2 + 2 * nmean) / nmean ** 3
     if as_dict:
-        return {"n": nmean, "g2": g2}
-    return np.array([nmean, g2])
+        return {"n": nmean, "g2": g2, "g3": g3}
+    return np.array([nmean, g2, g3])
 
 
 def gen_hist_1d(beam):
