@@ -79,12 +79,18 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
     inta, intb = jpd_data.shape
     na = np.arange(inta)
     nb = np.arange(intb)
-    ns = np.sum(jpd_data, axis=1) @ na
-    ni = np.sum(jpd_data, axis=0) @ nb
-    ns2 = np.sum(jpd_data, axis=1) @ (na ** 2)
-    ni2 = np.sum(jpd_data, axis=0) @ (nb ** 2)
+    ps = np.sum(jpd_data, axis=1)
+    pi = np.sum(jpd_data, axis=0)
+    ns = ps @ na
+    ni = pi @ nb
+    ns2 = ps @ (na ** 2)
+    ni2 = pi @ (nb ** 2)
+    ns3 = ps @ (na ** 3)
+    ni3 = pi @ (nb ** 3)
     g2s = (ns2 - ns) / ns ** 2
     g2i = (ni2 - ni) / ni ** 2
+    g3s = (ns3 - 3 * ns2 + 2 * ns) / ns ** 3
+    g3i = (ni3 - 3 * ni2 + 2 * ni) / ni ** 3
     g11 = (na @ jpd_data @ nb) / (ns * ni)
     nrf = np.sum([[((i - j) ** 2) * jpd_data[i, j] for i in range(inta)] for j in range(intb)])
     nrf -= np.sum([[(i - j) * jpd_data[i, j] for i in range(inta)] for j in range(intb)]) ** 2
@@ -97,8 +103,10 @@ def marginal_calcs_2d(jpd_data, as_dict=True):
             "g2_s": g2s,
             "g2_i": g2i,
             "nrf": nrf,
+            "g3_s": g3s,
+            "g3_i": g3i,
         }
-    return np.array([ns, ni, g11, g2s, g2i, nrf])
+    return np.array([ns, ni, g11, g2s, g2i, nrf, g3s, g3i])
 
 
 def gen_hist_2d(beam1, beam2):
