@@ -6,6 +6,8 @@
 
 * New convenience function for calculating 1D histograms. [#17](https://github.com/XanaduAI/sqtom/pull/17)
 
+* Adds the third order correlation function `g3` into `marginal_calcs_1d` and `marginal_calcs_2d`. [#]()
+
 ### Improvements
 
 ### Bug fixes
