@@ -39,7 +39,7 @@ def two_schmidt_mode_guess(pd_data, sq_label="sq_", noise_fraction=0.001, atol=1
     This model assumes that the mean photon number and the g2 are strictly positive.
 
     Args:
-        pd_data (array): rectangular array with the probability mass functions of the photon events
+        pd_data (array): one dimensional array of the probability distribution of the data
         sq_label (string): label for the squeezing parameters
 
     Returns:
